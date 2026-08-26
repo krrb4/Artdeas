@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <meta name="theme-color" content="#f8f4e9" id="meta-theme-color">
 <title>Artdeas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Henny+Penny&display=swap" rel="stylesheet">
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20standalone%3D%22no%22%3F%3E%0A%3C%21DOCTYPE%20svg%20PUBLIC%20%22-//W3C//DTD%20SVG%2020010904//EN%22%0A%20%22http%3A//www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd%22%3E%0A%3Csvg%20version%3D%221.0%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%0A%20width%3D%22120.000000pt%22%20height%3D%22120.000000pt%22%20viewBox%3D%220%200%20120.000000%20120.000000%22%0A%20preserveAspectRatio%3D%22xMidYMid%20meet%22%3E%0A%0A%3Cg%20transform%3D%22translate%280.000000%2C120.000000%29%20scale%280.100000%2C-0.100000%29%22%0Afill%3D%22%238b7bd8%22%20stroke%3D%22none%22%3E%0A%3Cpath%20d%3D%22M550%201154%20c-14%20-9%20-37%20-28%20-51%20-41%20-22%20-20%20-30%20-22%20-53%20-13%20-110%2042%0A-239%20-47%20-254%20-175%20-4%20-37%20-10%20-49%20-32%20-60%20-68%20-35%20-114%20-119%20-114%20-210%200%20-93%0A31%20-146%20131%20-226%207%20-5%2013%20-24%2013%20-42%200%20-40%2039%20-125%2071%20-154%2052%20-48%20137%20-57%0A199%20-22%20l39%2022%2030%20-26%20c18%20-15%2050%20-29%2076%20-33%2060%20-8%20128%2025%20170%2083%2025%2035%2036%2042%0A65%2042%2063%202%20107%2020%20143%2061%2036%2039%2067%20119%2067%20170%200%2029%20-27%20118%20-42%20137%20-6%207%20-5%0A28%202%2054%2036%20132%20-59%20289%20-173%20289%20-17%200%20-28%2012%20-45%2050%20-33%2071%20-79%20103%20-156%20108%0A-46%202%20-67%20-1%20-86%20-14z%20m32%20-346%20c21%20-17%2077%20-106%20122%20-197%2030%20-58%2035%20-76%2024%0A-82%20-26%20-17%20-88%20-5%20-88%2016%200%2030%20-31%2045%20-93%2045%20-72%200%20-82%20-5%20-97%20-44%20-10%20-26%0A-14%20-28%20-51%20-23%20-22%203%20-43%207%20-45%2010%20-10%2010%20113%20234%20147%20268%2022%2022%2058%2025%2081%207z%22/%3E%0A%3Cpath%20d%3D%22M521%20691%20c-23%20-44%20-20%20-51%2024%20-51%2017%200%2034%203%2038%206%206%206%20-29%2084%20-38%2084%0A-3%200%20-13%20-17%20-24%20-39z%22/%3E%0A%3Cpath%20d%3D%22M1024%20340%20c-30%20-12%20-54%20-49%20-54%20-83%200%20-31%2047%20-87%2074%20-87%2089%200%20124%0A125%2045%20165%20-32%2017%20-36%2017%20-65%205z%22/%3E%0A%3Cpath%20d%3D%22M1072%20133%20c-25%20-10%20-34%20-53%20-17%20-79%2035%20-53%20119%20-11%2096%2048%20-13%2033%20-44%0A45%20-79%2031z%22/%3E%0A%3C/g%3E%0A%3C/svg%3E%0A">
 
 <!--
@@ -308,6 +311,7 @@ que Tomas lo pida explícitamente).
     --mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
     --serif: 'Source Serif 4', 'Georgia', serif;
     --sans: 'Inter', -apple-system, sans-serif;
+    --logo-font: 'Henny Penny', var(--serif);
   }
 
   [data-theme="dark"] {
@@ -400,11 +404,11 @@ que Tomas lo pida explícitamente).
   }
 
   .brand {
-    font-family: var(--serif);
-    font-size: 1.05rem;
-    font-weight: 600;
-    letter-spacing: -0.01em;
-    line-height: 1.2;
+    font-family: var(--logo-font);
+    font-size: 1.15rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
+    line-height: 1.3;
   }
 
   .brand-row {
@@ -655,10 +659,10 @@ que Tomas lo pida explícitamente).
   }
 
   .home-hero-title {
-    font-family: var(--serif);
-    font-size: 2.4rem;
-    font-weight: 600;
-    letter-spacing: -0.02em;
+    font-family: var(--logo-font);
+    font-size: 2.6rem;
+    font-weight: 400;
+    letter-spacing: 0.01em;
   }
 
   .home-hero-desc {
@@ -1223,9 +1227,9 @@ que Tomas lo pida explícitamente).
     }
 
     .mobile-brand {
-      font-family: var(--serif);
-      font-size: 0.95rem;
-      font-weight: 600;
+      font-family: var(--logo-font);
+      font-size: 1.05rem;
+      font-weight: 400;
       cursor: pointer;
     }
 
@@ -3485,5 +3489,3 @@ if (getSavedToken()) {
 </script>
 </body>
 </html>
-
-<!-- write-test-ok -->
