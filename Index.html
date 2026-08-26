@@ -451,20 +451,8 @@ que Tomas lo pida explícitamente).
     flex-shrink: 0;
   }
 
-  .install-hint {
-    display: flex;
-    align-items: flex-start;
-    gap: 8px;
-    margin-top: auto;
-    padding: 12px 12px;
-    background: var(--accent-soft);
-    border-radius: 10px;
-    color: var(--accent);
-    font-size: 0.74rem;
-    line-height: 1.5;
-  }
-
   .version-link {
+    margin-top: auto;
     padding-top: 14px;
     font-family: var(--mono);
     font-size: 0.68rem;
@@ -476,6 +464,73 @@ que Tomas lo pida explícitamente).
   .version-link:hover {
     color: var(--accent);
     text-decoration: underline;
+  }
+
+  /* ============ INSTALL BANNER (flotante, descartable) ============ */
+  .install-banner {
+    position: fixed;
+    left: 16px;
+    right: 16px;
+    bottom: 16px;
+    max-width: 420px;
+    margin: 0 auto;
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 13px 14px;
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    border-radius: 12px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.14);
+    z-index: 55;
+    animation: install-banner-in 0.3s ease;
+  }
+
+  @keyframes install-banner-in {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .install-banner-icon {
+    flex-shrink: 0;
+    width: 30px;
+    height: 30px;
+    border-radius: 8px;
+    background: var(--accent-soft);
+    color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .install-banner-text {
+    flex: 1;
+    font-size: 0.8rem;
+    color: var(--ink);
+    line-height: 1.45;
+  }
+
+  .install-banner-close {
+    flex-shrink: 0;
+    background: none;
+    border: none;
+    color: var(--slate);
+    cursor: pointer;
+    font-size: 1.1rem;
+    line-height: 1;
+    padding: 2px 4px;
+  }
+
+  .install-banner-close:hover {
+    color: var(--ink);
+  }
+
+  @media (max-width: 600px) {
+    .install-banner {
+      left: 10px;
+      right: 10px;
+      bottom: 10px;
+    }
   }
 
   .changelog-entry {
@@ -1899,11 +1954,6 @@ que Tomas lo pida explícitamente).
       <div id="nav-categorias"></div>
     </div>
 
-    <div class="install-hint">
-      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="flex-shrink:0"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
-      <span>Tip: on mobile, add Artdeas to your home screen for quick access — look for "Add to Home Screen" in your browser's share or menu button.</span>
-    </div>
-
     <div class="version-link" onclick="openChangelog()">v0.6.0 · What's new</div>
   </aside>
 
@@ -1913,6 +1963,14 @@ que Tomas lo pida explícitamente).
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
 </button>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+<div class="install-banner" id="install-banner" style="display:none">
+  <div class="install-banner-icon">
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><line x1="12" y1="18" x2="12.01" y2="18"/></svg>
+  </div>
+  <div class="install-banner-text">Add Artdeas to your home screen for quick access — look for "Add to Home Screen" in your browser's share or menu button.</div>
+  <button class="install-banner-close" onclick="dismissInstallBanner()" aria-label="Dismiss">&times;</button>
+</div>
 
 <!-- MODAL: New idea -->
 <div class="modal-overlay" id="new-idea-overlay">
@@ -2427,6 +2485,37 @@ function toggleTheme() {
     applyTheme("dark");
   }
 })();
+
+/* ==================================================================
+   INSTALL BANNER — invita a agregar Artdeas a la pantalla de inicio.
+   Solo se muestra en pantallas chicas (mobile, donde "agregar a
+   inicio" tiene sentido real), con un pequeño delay para no golpear
+   apenas se abre la página, y solo si el usuario no lo cerró antes
+   (se recuerda en localStorage, sin volver a mostrarse esa sesión
+   ni las siguientes en ese navegador).
+================================================================== */
+const INSTALL_BANNER_DISMISSED_KEY = "artdeas_install_banner_dismissed";
+
+function dismissInstallBanner() {
+  const banner = document.getElementById("install-banner");
+  if (banner) banner.style.display = "none";
+  if (STORAGE_OK) {
+    try { localStorage.setItem(INSTALL_BANNER_DISMISSED_KEY, "1"); } catch(e) {}
+  }
+}
+
+function maybeShowInstallBanner() {
+  if (window.innerWidth > 860) return; // solo mobile, donde tiene sentido
+  let dismissed = false;
+  if (STORAGE_OK) {
+    try { dismissed = localStorage.getItem(INSTALL_BANNER_DISMISSED_KEY) === "1"; } catch(e) {}
+  }
+  if (dismissed) return;
+  setTimeout(() => {
+    const banner = document.getElementById("install-banner");
+    if (banner) banner.style.display = "flex";
+  }, 2500);
+}
 
 /* ==================================================================
    GO TO TOP (botón flotante)
@@ -3559,6 +3648,8 @@ render();
 if (getSavedToken()) {
   initDriveSync();
 }
+
+maybeShowInstallBanner();
 </script>
 </body>
 </html>
