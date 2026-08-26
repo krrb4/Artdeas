@@ -1,0 +1,3487 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#f8f4e9" id="meta-theme-color">
+<title>Artdeas</title>
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3C%3Fxml%20version%3D%221.0%22%20standalone%3D%22no%22%3F%3E%0A%3C%21DOCTYPE%20svg%20PUBLIC%20%22-//W3C//DTD%20SVG%2020010904//EN%22%0A%20%22http%3A//www.w3.org/TR/2001/REC-SVG-20010904/DTD/svg10.dtd%22%3E%0A%3Csvg%20version%3D%221.0%22%20xmlns%3D%22http%3A//www.w3.org/2000/svg%22%0A%20width%3D%22120.000000pt%22%20height%3D%22120.000000pt%22%20viewBox%3D%220%200%20120.000000%20120.000000%22%0A%20preserveAspectRatio%3D%22xMidYMid%20meet%22%3E%0A%0A%3Cg%20transform%3D%22translate%280.000000%2C120.000000%29%20scale%280.100000%2C-0.100000%29%22%0Afill%3D%22%238b7bd8%22%20stroke%3D%22none%22%3E%0A%3Cpath%20d%3D%22M550%201154%20c-14%20-9%20-37%20-28%20-51%20-41%20-22%20-20%20-30%20-22%20-53%20-13%20-110%2042%0A-239%20-47%20-254%20-175%20-4%20-37%20-10%20-49%20-32%20-60%20-68%20-35%20-114%20-119%20-114%20-210%200%20-93%0A31%20-146%20131%20-226%207%20-5%2013%20-24%2013%20-42%200%20-40%2039%20-125%2071%20-154%2052%20-48%20137%20-57%0A199%20-22%20l39%2022%2030%20-26%20c18%20-15%2050%20-29%2076%20-33%2060%20-8%20128%2025%20170%2083%2025%2035%2036%2042%0A65%2042%2063%202%20107%2020%20143%2061%2036%2039%2067%20119%2067%20170%200%2029%20-27%20118%20-42%20137%20-6%207%20-5%0A28%202%2054%2036%20132%20-59%20289%20-173%20289%20-17%200%20-28%2012%20-45%2050%20-33%2071%20-79%20103%20-156%20108%0A-46%202%20-67%20-1%20-86%20-14z%20m32%20-346%20c21%20-17%2077%20-106%20122%20-197%2030%20-58%2035%20-76%2024%0A-82%20-26%20-17%20-88%20-5%20-88%2016%200%2030%20-31%2045%20-93%2045%20-72%200%20-82%20-5%20-97%20-44%20-10%20-26%0A-14%20-28%20-51%20-23%20-22%203%20-43%207%20-45%2010%20-10%2010%20113%20234%20147%20268%2022%2022%2058%2025%2081%207z%22/%3E%0A%3Cpath%20d%3D%22M521%20691%20c-23%20-44%20-20%20-51%2024%20-51%2017%200%2034%203%2038%206%206%206%20-29%2084%20-38%2084%0A-3%200%20-13%20-17%20-24%20-39z%22/%3E%0A%3Cpath%20d%3D%22M1024%20340%20c-30%20-12%20-54%20-49%20-54%20-83%200%20-31%2047%20-87%2074%20-87%2089%200%20124%0A125%2045%20165%20-32%2017%20-36%2017%20-65%205z%22/%3E%0A%3Cpath%20d%3D%22M1072%20133%20c-25%20-10%20-34%20-53%20-17%20-79%2035%20-53%20119%20-11%2096%2048%20-13%2033%20-44%0A45%20-79%2031z%22/%3E%0A%3C/g%3E%0A%3C/svg%3E%0A">
+
+<!--
+====================================================================
+INSTRUCCIONES PARA CLAUDE — LEER ANTES DE MODIFICAR ESTE ARCHIVO
+====================================================================
+
+Este archivo es el backlog vivo de ideas de proyectos 3D de Tomas
+(cortos, reels, videojuegos, etc). Los datos están en el array
+`IDEAS` dentro del <script> al final del archivo. Editalo ahí.
+
+ESTRUCTURA DE CADA IDEA (objeto JS):
+{
+  id: string único (slug, ej: "espejo-mask-off"),
+  titulo: string,
+  categoria: string (ej: "Corto / Reel Instagram", "Videojuego"),
+  estado: uno de "idea" | "en-curso" | "pausada" | "descartada" | "completada",
+  dificultad: número 1-10 o null si no está definido,
+  tiempo: número 1-10 o null si no está definido,
+  descripcion: string (puede tener saltos de línea con \n, se renderiza como párrafos),
+  notas: array de strings,
+  fases: {
+    preproduccion: array de pasos,
+    pruebasTecnicas: array de pasos,
+    filmacion: array de pasos,
+    produccion3d: array de pasos,
+    postproduccion: array de pasos,
+    distribucion: array de pasos
+  },
+  cosasAResolver: array de { texto: string, resuelto: boolean, busqueda: array de strings o null }
+}
+
+Cada "paso" dentro de una fase puede ser:
+  - un string simple: "Modelar/texturizar cada asset."
+  - o un objeto con explicación adicional cuando el paso usa un
+    término técnico que Tomas puede no conocer:
+    { texto: "Hacer storyboard del fragmento.",
+      explicacion: "El storyboard es una serie de dibujos simples
+      que muestran cada toma en orden, como un comic. Sirve para
+      planear cámara y composición antes de filmar o modelar nada." }
+  Usar el objeto con explicación cuando el paso menciona una técnica,
+  herramienta o concepto de producción audiovisual/3D que alguien sin
+  experiencia en dirección/VFX no necesariamente conoce (storyboard,
+  compositing, timestamps, rigging, retopología, etc). No hace falta
+  explicar términos que Tomas ya maneja como 3D artist (blocking,
+  UV, shading, high poly, etc).
+
+No todas las fases aplican a todas las ideas (ej: un videojuego no
+tiene "filmación"). Si una fase no aplica, dejar el array vacío []
+y no se va a renderizar esa sección.
+
+IMPORTANTE: no usar emojis en ningún texto (títulos, pasos, notas,
+etc). El diseño usa colores para diferenciar secciones, no íconos.
+
+====================================================================
+CÓMO FUNCIONA LA PERSISTENCIA (dos modos: anónimo y con Google Drive)
+====================================================================
+Esta app está pensada para eventualmente ser usada por otras
+personas además de Tomas, no solo por él, así que tiene dos modos:
+
+MODO ANÓNIMO (sin login): al abrir la página sin conectar Google
+Drive, arranca con IDEAS_DEFAULT vacío ([]) — nadie ve datos de
+Tomas ni de nadie más. El usuario puede crear/editar ideas
+libremente, y todo se guarda en localStorage de ESE navegador. Es
+funcional de punta a punta sin necesidad de cuenta.
+
+MODO CONECTADO (con Google Drive): al usar el botón "Conectar
+Google Drive" en la sidebar, la página autentica con OAuth y busca
+(o crea, si es la primera vez de esa cuenta) un archivo
+"artdeas-data.json" en el Drive de ESA cuenta puntual. Ese archivo
+pasa a ser la fuente de verdad mientras dure la sesión — reemplaza
+lo que hubiera en pantalla en modo anónimo. Si había ideas creadas
+sin login, se le avisa al usuario con un modal de confirmación
+propio (showConfirm(), no el confirm() nativo del navegador) antes
+de conectar, para que no las pierda sin darse cuenta (puede cancelar
+y exportarlas primero a .json como respaldo).
+
+Cada cuenta de Google ve SOLO sus propias ideas (su propio archivo
+en su propio Drive) — no hay mezcla de datos entre usuarios.
+
+IMPORTANTE PARA CLAUDE: sobre el Drive de Tomas puntualmente, como
+Claude tiene acceso vía conector en el chat, cuando Tomas pida
+"expandí la idea X" Claude puede leer y escribir DIRECTAMENTE el
+archivo "artdeas-data.json" en el Drive de Tomas (buscarlo con
+search_files, leerlo con read_file_content, y actualizarlo
+re-subiendo el JSON completo) — sin necesidad de que Tomas suba ni
+baje nada desde la página. IDEAS_DEFAULT dentro de este HTML debe
+permanecer vacío ([]) — no restaurar ahí las ideas de Tomas ni de
+ningún usuario particular, eso rompería el modo anónimo para
+cualquier otra persona que abra la página sin loguearse.
+
+Si por algún motivo Drive no está disponible y hace falta trabajar
+sobre el HTML directamente, seguís pudiendo usar "Download archivo
+actualizado" o "Export solo datos (.json)" como respaldo manual,
+igual que antes.
+
+====================================================================
+FLUJO PARA "CREAR IDEA NUEVA" — con importación a la página
+====================================================================
+Cuando Tomas complete el proceso de crear una idea nueva en el chat
+(el paso a paso de preguntas descrito arriba), ADEMÁS de actualizar
+IDEAS_DEFAULT en este archivo si estás regenerándolo, generá un
+bloque de JSON con el objeto de la idea completa, en un code block,
+para que Tomas lo copie y lo pegue en el modal "New idea" → pestaña
+"Import from Claude" de la página (sin tener que reemplazar todo el
+archivo).
+
+El JSON debe tener exactamente esta forma (un objeto, no un array,
+salvo que sean varias ideas juntas):
+
+{
+  "titulo": "...",
+  "categoria": "...",
+  "estado": "idea",
+  "dificultad": null,
+  "tiempo": null,
+  "descripcion": "...",
+  "notas": ["...", "..."],
+  "fases": {
+    "preproduccion": ["...", { "texto": "...", "explicacion": "..." }],
+    "pruebasTecnicas": [],
+    "filmacion": [],
+    "produccion3d": [],
+    "postproduccion": [],
+    "distribucion": []
+  },
+  "cosasAResolver": [
+    { "texto": "...", "resuelto": false, "busqueda": ["...", "..."] }
+  ]
+}
+
+No hace falta incluir "id" — la página lo genera sola a partir del
+título. Mismo criterio de campos que en la sección de arriba (fases
+que no aplican quedan como array vacío, pasos pueden ser string u
+objeto con explicación, etc).
+
+====================================================================
+FLUJO "EVOLVE IDEA" — punto de entrada único para que Tomas pida
+ayuda a Claude sobre una idea puntual desde la propia página
+(unifica lo que antes eran dos botones separados: "Enrich idea" y
+"Complete info")
+====================================================================
+La página tiene un botón "Evolve idea" (color ámbar) en el header
+del detalle de cada idea. Al usarlo se abre un modal con dos pasos:
+
+PASO 1 (arriba del modal): "Copy prompt for Claude" — arma
+automáticamente un mensaje de texto con toda la info actual de esa
+idea (título, descripción, notas, plan de producción, cosas a
+resolver) y una consigna para Claude, y se lo ofrece a Tomas para
+copiar (vía el mismo modal de Copy/Share/Download del resto de la
+página).
+
+PASO 2 (abajo del modal): un textarea donde Tomas pega la respuesta
+final de Claude (un bloque JSON) y un botón "Update idea" que
+ACTUALIZA esa idea puntual en el archivo (mergeando campo por campo,
+sin crear una idea nueva).
+
+Tomas copia el mensaje del Paso 1 y lo pega en un chat con Claude
+(este mismo u otro nuevo). Cuando Claude reciba un mensaje con este
+formato, debe:
+1. Seguir el flujo normal de preguntas una por una (ver REGLA DE ORO
+   más abajo), usando la info ya incluida en el mensaje como punto
+   de partida — no volver a preguntar cosas que ya están ahí.
+2. Al terminar, tiene DOS formas de dejar el resultado, según el
+   contexto:
+   a) Si Claude ya tiene acceso a Google Drive vía conector en el
+      chat (que es el caso de Tomas), lo más directo es actualizar
+      DIRECTAMENTE el archivo "artdeas-data.json" en su Drive
+      (buscarlo con search_files, leerlo, modificar el objeto de esa
+      idea puntual, volver a subirlo completo) — así Tomas no
+      necesita hacer nada más, el cambio ya va a estar la próxima
+      vez que abra la página.
+   b) Si no hay acceso a Drive (otro usuario, u otro chat sin el
+      conector), Claude arma el JSON de la idea actualizada y se lo
+      da a Tomas para que lo pegue en el Paso 2 del modal "Evolve
+      idea" (el textarea de abajo), que lo aplica localmente.
+
+El JSON para el Paso 2 (o para que Claude lo aplique directo en
+Drive con el mismo criterio) tiene esta forma:
+
+{
+  "descripcion": "...",
+  "notas": ["...", "..."],
+  "fases": {
+    "preproduccion": ["...", { "texto": "...", "explicacion": "..." }],
+    "pruebasTecnicas": [],
+    "filmacion": [],
+    "produccion3d": [],
+    "postproduccion": [],
+    "distribucion": []
+  },
+  "cosasAResolver": [
+    { "texto": "...", "resuelto": false, "busqueda": ["...", "..."] }
+  ]
+}
+
+Reglas del merge (importante para armar bien el JSON):
+  - Solo incluir los campos que realmente querés actualizar. Un
+    campo ausente en el JSON deja el valor actual de la idea sin
+    tocar.
+  - "fases": se reemplaza fase por fase. Si el JSON trae contenido
+    para "preproduccion", esa fase se reemplaza completa; las fases
+    que el JSON deja como array vacío [] NO se tocan (se conserva lo
+    que ya había ahí).
+  - "cosasAResolver": los ítems del JSON se AGREGAN a la lista
+    existente, no la reemplazan — así no se pierden ítems que Tomas
+    ya tildó como resueltos.
+  - "titulo", "categoria", "estado", "dificultad", "tiempo" también
+    se pueden actualizar con este mismo JSON si hace falta corregir
+    algo, incluyendo el campo correspondiente.
+
+Para "modificar idea" (cambiar un campo puntual) o "tachar cosa
+resuelta": lo más simple sigue siendo que Tomas lo haga directo en
+la página (tildar un checkbox, usar "+ Add thing to figure out",
+editar campos), salvo que sea un cambio grande que amerite pasar por
+"Evolve idea". El chat con Claude sirve sobre todo para definir
+el plan de producción completo de una idea (nueva o ya creada) o
+para reescribir el archivo entero si hace falta una reestructuración
+grande.
+
+COMANDOS QUE TOMAS PUEDE USAR EN EL CHAT (si sube este archivo a
+una conversación con Claude, Claude debe reconocer y ejecutar):
+
+- "crear idea nueva" → Preguntar UNO POR UNO (no todo junto):
+    1. Title
+    2. Category
+    3. Description breve
+    4. Luego, según el tipo de proyecto, hacer preguntas de
+       descubrimiento una por una (como se hizo con la idea del
+       espejo: efectos técnicos necesarios, estilo visual, equipo
+       disponible, etc.), anotando cada respuesta antes de pasar
+       a la siguiente pregunta.
+    5. Para cada "cosa a resolver" que Tomas no sepa cómo hacer,
+       ofrecer un pie de búsqueda corto en inglés (términos exactos
+       para buscar en YouTube/Google), sin explicar de más salvo
+       que Tomas lo pida explícitamente.
+    6. Armar el plan de producción por fases (ver plantilla abajo),
+       adaptando qué fases aplican.
+    7. Agregar el nuevo objeto al array IDEAS y confirmar a Tomas.
+
+- "modificar idea" → Preguntar cuál idea (por título), qué campo
+    quiere modificar, aplicar el cambio directo en el array IDEAS.
+
+- "tachar" / "marcar resuelto" → Preguntar qué idea y qué ítem de
+    cosasAResolver, marcar resuelto: true.
+
+- "ver ideas" / "listar ideas" → Listar en texto plano: título,
+    categoría, estado, dificultad, tiempo. No hace falta regenerar
+    el HTML para esto, es solo lectura en el chat.
+
+- "borrar idea" → Confirmar con Tomas antes de eliminar el objeto
+    del array.
+
+- "cambiar estado" → Preguntar cuál idea y el nuevo estado
+    (idea / en-curso / pausada / descartada / completada).
+
+PLANTILLA DE FASES DE PRODUCCIÓN (usar como referencia, adaptar
+según el tipo de proyecto — un videojuego no tiene "filmación" pero
+sí puede tener "prototipo jugable", por ejemplo. Usar criterio):
+
+  PREPRODUCCIÓN: definir el QUÉ (guión/storyboard/diseño, mapear
+    necesidades, moodboard, definir estilo visual).
+  PRUEBAS TÉCNICAS: resolver el CÓMO antes de comprometer tiempo
+    grande (tutoriales, pruebas cortas, validar efectos/técnicas).
+  FILMACIÓN: si aplica, rodaje real.
+  PRODUCCIÓN 3D: modelado, texturizado, animación, render.
+  POSTPRODUCCIÓN: compositing, edición, color, sonido.
+  DISTRIBUCIÓN: breakdown de contenido para Instagram siguiendo el
+    flujo de captura por etapas ya definido (carpetas numeradas
+    /social/01_blocking/ etc, dividir proyectos grandes en 4-6
+    publicaciones separadas a lo largo de 3-4 semanas).
+
+REGLA DE ORO: siempre preguntar una cosa por vez a Tomas, nunca
+tirar una lista larga de preguntas juntas. Si Tomas no sabe cómo
+resolver algo técnico, es tarea de Claude investigar y sugerir el
+pie de búsqueda concreto, no dejarlo como pregunta abierta para
+Tomas.
+
+Después de cualquier edición, actualizar también el objeto y
+mantener el HTML/CSS/JS de abajo intacto (no tocar el diseño salvo
+que Tomas lo pida explícitamente).
+====================================================================
+-->
+
+<style>
+  :root {
+    --ink: #1a1815;
+    --paper: #f8f4e9;
+    --panel: #fffdf6;
+    --line: #e6dfc9;
+    --line-strong: #d1c6a5;
+    --accent: #8b7bd8;
+    --accent-hover: #7565c4;
+    --accent-soft: #ebe7fa;
+    --amber: #a6702c;
+    --amber-soft: #f3e7d3;
+    --rust: #a13f2e;
+    --rust-soft: #f4e2dd;
+    --slate: #5c6470;
+    --slate-soft: #eaecee;
+    --mono: 'JetBrains Mono', 'SF Mono', Consolas, monospace;
+    --serif: 'Source Serif 4', 'Georgia', serif;
+    --sans: 'Inter', -apple-system, sans-serif;
+  }
+
+  [data-theme="dark"] {
+    --ink: #e8e3f2;
+    --paper: #18141f;
+    --panel: #211c2c;
+    --line: #322a40;
+    --line-strong: #453a58;
+    --accent: #8b7bd8;
+    --accent-hover: #9c8ee3;
+    --accent-soft: #2c2647;
+    --amber: #c9a15f;
+    --amber-soft: #332a1e;
+    --rust: #c97b6e;
+    --rust-soft: #3a2429;
+    --slate: #9089ab;
+    --slate-soft: #2a2438;
+  }
+
+  [data-theme="dark"] body {
+    background: var(--paper);
+  }
+
+  [data-theme="dark"] .status-card:hover {
+    box-shadow: 0 6px 18px rgba(0,0,0,0.35);
+  }
+
+  [data-theme="dark"] .idea-card:hover {
+    box-shadow: 0 4px 14px rgba(0,0,0,0.3);
+  }
+
+  [data-theme="dark"] .sidebar-overlay {
+    background: rgba(0,0,0,0.55);
+  }
+
+  [data-theme="dark"] .modal-overlay {
+    background: rgba(0,0,0,0.6);
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  html {
+    background: var(--paper);
+    min-height: 100%;
+    color-scheme: light;
+  }
+
+  [data-theme="dark"] {
+    color-scheme: dark;
+  }
+
+  body {
+    background: var(--paper);
+    color: var(--ink);
+    font-family: var(--sans);
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+    transition: background 0.15s ease, color 0.15s ease;
+    min-height: 100vh;
+    min-height: 100dvh;
+  }
+
+  a { color: inherit; }
+
+  /* ============ LAYOUT ============ */
+  .app {
+    display: grid;
+    grid-template-columns: 260px 1fr;
+    min-height: 100vh;
+  }
+
+  @media (max-width: 860px) {
+    .app { grid-template-columns: 1fr; }
+    .sidebar { position: static; border-right: none; border-bottom: 1px solid var(--line); }
+  }
+
+  /* ============ SIDEBAR ============ */
+  .sidebar {
+    background: var(--panel);
+    border-right: 1px solid var(--line);
+    padding: 28px 22px;
+    position: sticky;
+    top: 0;
+    height: 100vh;
+    overflow-y: auto;
+  }
+
+  @media (max-width: 860px) {
+    .sidebar { height: auto; }
+  }
+
+  .brand {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+  }
+
+  .brand-row {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 24px;
+  }
+
+  .brand-title-group {
+    display: flex;
+    align-items: flex-start;
+    gap: 9px;
+  }
+
+  .brand-title-group:hover .brand {
+    color: var(--accent);
+  }
+
+  .brand-text {
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    gap: 2px;
+  }
+
+  .brand-logo {
+    flex-shrink: 0;
+  }
+
+  [data-theme="dark"] .brand-logo path {
+    fill: #8b7bd8;
+  }
+
+  .version-link {
+    margin-top: auto;
+    padding-top: 20px;
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--slate);
+    cursor: pointer;
+    text-align: center;
+  }
+
+  .version-link:hover {
+    color: var(--accent);
+    text-decoration: underline;
+  }
+
+  .changelog-entry {
+    margin-bottom: 18px;
+  }
+
+  .changelog-entry:last-child {
+    margin-bottom: 0;
+  }
+
+  .changelog-version {
+    display: flex;
+    align-items: baseline;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+
+  .changelog-version-num {
+    font-family: var(--mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent);
+  }
+
+  .changelog-version-date {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    color: var(--slate);
+  }
+
+  .changelog-items {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .changelog-items li {
+    font-size: 0.85rem;
+    color: #333;
+    padding-left: 14px;
+    position: relative;
+  }
+
+  .changelog-items li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--slate);
+  }
+
+  .theme-toggle {
+    flex-shrink: 0;
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    border: 1px solid var(--line-strong);
+    background: var(--panel);
+    cursor: pointer;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--ink);
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--accent);
+  }
+
+  .theme-toggle::before {
+    content: '☾';
+    font-size: 0.95rem;
+  }
+
+  [data-theme="dark"] .theme-toggle::before {
+    content: '☀';
+  }
+
+  .brand-sub {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    color: var(--slate);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+  }
+
+  .nav-section {
+    margin-bottom: 22px;
+  }
+
+  .nav-label {
+    font-family: var(--mono);
+    font-size: 0.65rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--slate);
+    margin-bottom: 8px;
+  }
+
+  .nav-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 7px 10px;
+    border-radius: 6px;
+    font-size: 0.85rem;
+    cursor: pointer;
+    color: var(--ink);
+    border: 1px solid transparent;
+  }
+
+  .nav-item:hover {
+    background: var(--accent-soft);
+  }
+
+  .nav-item.active {
+    background: var(--accent);
+    color: var(--paper);
+  }
+
+  .nav-item.home-item {
+    font-weight: 600;
+  }
+
+  .nav-item .count {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    opacity: 0.7;
+  }
+
+  .nav-item-cat {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 6px 10px;
+    border-radius: 6px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    color: var(--slate);
+  }
+
+  .nav-item-cat:hover {
+    background: var(--slate-soft);
+    color: var(--ink);
+  }
+
+  .nav-item-cat.active {
+    background: var(--ink);
+    color: var(--paper);
+  }
+
+  /* ============ MAIN ============ */
+  .main {
+    padding: 36px 40px 80px;
+    max-width: 980px;
+    width: 100%;
+    margin: 0 auto;
+  }
+
+  @media (max-width: 600px) {
+    .main { padding: 24px 18px 60px; }
+  }
+
+  .page-header {
+    margin-bottom: 28px;
+  }
+
+  .page-title {
+    font-family: var(--serif);
+    font-size: 2rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin-bottom: 6px;
+  }
+
+  .page-desc {
+    color: var(--slate);
+    font-size: 0.92rem;
+  }
+
+  /* ============ HOME HERO ============ */
+  .home-hero {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    padding: 32px 0 36px;
+  }
+
+  .home-hero-logo-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 14px;
+  }
+
+  [data-theme="dark"] .home-hero-logo path {
+    fill: #8b7bd8;
+  }
+
+  .home-hero-title {
+    font-family: var(--serif);
+    font-size: 2.4rem;
+    font-weight: 600;
+    letter-spacing: -0.02em;
+  }
+
+  .home-hero-desc {
+    color: var(--slate);
+    font-size: 0.95rem;
+    max-width: 440px;
+    margin-bottom: 24px;
+  }
+
+  .home-hero-search {
+    width: 100%;
+    max-width: 460px;
+  }
+
+  .home-create-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    width: 100%;
+    max-width: 460px;
+    margin: 24px auto 0;
+    padding: 14px;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent);
+    color: var(--paper);
+    font-family: var(--sans);
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .home-create-btn:hover {
+    background: var(--accent-hover);
+  }
+
+  @media (max-width: 600px) {
+    .home-hero { padding: 16px 0 24px; }
+    .home-hero-title { font-size: 1.9rem; }
+  }
+
+  /* ============ SEARCH ============ */
+  .search-wrap {
+    position: relative;
+    margin-bottom: 28px;
+  }
+
+  .search-input {
+    width: 100%;
+    padding: 13px 16px 13px 42px;
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    background: var(--panel);
+    font-family: var(--sans);
+    font-size: 0.92rem;
+    color: var(--ink);
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+
+  .search-input:focus {
+    border-color: var(--accent);
+  }
+
+  .search-icon {
+    position: absolute;
+    left: 15px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--slate);
+    pointer-events: none;
+  }
+
+  /* ============ STATUS CARDS ============ */
+  .status-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 12px;
+    margin-bottom: 36px;
+  }
+
+  @media (max-width: 860px) {
+    .status-grid {
+      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+  }
+
+  .status-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+  }
+
+  .status-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 18px rgba(26,24,21,0.07);
+    border-color: var(--line-strong);
+  }
+
+  .status-card.selected {
+    border-color: var(--ink);
+    box-shadow: 0 0 0 1.5px var(--ink);
+  }
+
+  .status-card-top {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 10px;
+  }
+
+  .status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  .status-count {
+    font-family: var(--serif);
+    font-size: 1.7rem;
+    font-weight: 600;
+    line-height: 1;
+  }
+
+  .status-name {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    color: var(--slate);
+    margin-bottom: 10px;
+  }
+
+  .status-preview {
+    font-size: 0.78rem;
+    color: var(--slate);
+    line-height: 1.6;
+  }
+
+  .status-preview div {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  /* ============ CARD LIST ============ */
+  .section-label {
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    color: var(--slate);
+    margin-bottom: 14px;
+  }
+
+  .idea-list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  .idea-card {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+    cursor: pointer;
+    transition: border-color 0.12s ease, box-shadow 0.12s ease;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+  }
+
+  .idea-card:hover {
+    border-color: var(--accent);
+    box-shadow: 0 4px 14px rgba(26,24,21,0.06);
+  }
+
+  .idea-card-main {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .idea-card-title {
+    font-family: var(--serif);
+    font-size: 1.08rem;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  .idea-card-meta {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .tag {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    padding: 3px 8px;
+    border-radius: 5px;
+    white-space: nowrap;
+  }
+
+  .tag-cat {
+    background: var(--slate-soft);
+    color: var(--slate);
+  }
+
+  .idea-card-stats {
+    display: flex;
+    gap: 14px;
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    color: var(--slate);
+    flex-shrink: 0;
+  }
+
+  .stat-block { text-align: center; }
+  .stat-num { font-size: 1rem; color: var(--ink); font-weight: 600; }
+  .stat-lbl { font-size: 0.6rem; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .empty-state {
+    padding: 60px 20px;
+    text-align: center;
+    color: var(--slate);
+  }
+
+  .empty-state .big {
+    font-family: var(--serif);
+    font-size: 1.3rem;
+    color: var(--ink);
+    margin-bottom: 6px;
+  }
+
+  /* ============ DETAIL VIEW ============ */
+  .back-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    font-family: var(--mono);
+    font-size: 0.8rem;
+    color: var(--slate);
+    cursor: pointer;
+    border: none;
+    background: none;
+  }
+
+  .back-btn:hover { color: var(--ink); }
+
+  .detail-top-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 20px;
+    flex-wrap: wrap;
+  }
+
+  .complete-info-btn {
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--accent);
+    background: var(--accent-soft);
+    border: 1px solid var(--accent);
+    border-radius: 8px;
+    padding: 7px 14px;
+    cursor: pointer;
+  }
+
+  .complete-info-btn:hover {
+    background: var(--accent);
+    color: var(--paper);
+  }
+
+  [data-theme="dark"] .complete-info-btn:hover {
+    color: var(--paper);
+  }
+
+  .enrich-btn {
+    color: var(--amber);
+    background: var(--amber-soft);
+    border-color: var(--amber);
+  }
+
+  .enrich-btn:hover {
+    background: var(--amber);
+    color: var(--paper);
+  }
+
+  @media (max-width: 600px) {
+    .detail-top-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .detail-top-row > div {
+      flex-direction: column;
+    }
+    .complete-info-btn {
+      width: 100%;
+      text-align: center;
+      padding: 10px 14px;
+    }
+  }
+
+  .detail-header {
+    margin-bottom: 24px;
+  }
+
+  .detail-title {
+    font-family: var(--serif);
+    font-size: 2.1rem;
+    font-weight: 600;
+    letter-spacing: -0.015em;
+    margin-bottom: 12px;
+  }
+
+  .detail-badges {
+    display: flex;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+
+  .badge {
+    font-family: var(--mono);
+    font-size: 0.72rem;
+    padding: 5px 11px;
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .badge-status { }
+  .badge-cat { background: var(--slate-soft); color: var(--slate); }
+  .badge-metric { background: var(--paper); border: 1px solid var(--line-strong); color: var(--ink); }
+
+  .detail-block {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 14px;
+    padding: 24px 26px;
+    margin-bottom: 18px;
+  }
+
+  .block-title {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+    margin-bottom: 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .block-title .dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 3px;
+    flex-shrink: 0;
+    display: inline-block;
+  }
+
+  .block-title.c-plan { color: var(--accent); }
+  .block-title.c-desc { color: var(--ink); }
+  .block-title.c-notes { color: var(--amber); }
+  .block-title.c-resolve { color: var(--rust); }
+
+  .desc-text p {
+    margin-bottom: 10px;
+    font-size: 0.94rem;
+    color: var(--ink);
+  }
+  .desc-text p:last-child { margin-bottom: 0; }
+
+  .notes-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .notes-list li {
+    font-size: 0.88rem;
+    color: var(--ink);
+    padding-left: 16px;
+    position: relative;
+  }
+
+  .notes-list li::before {
+    content: '—';
+    position: absolute;
+    left: 0;
+    color: var(--slate);
+  }
+
+  /* Phase pipeline */
+  .phase {
+    margin-bottom: 20px;
+  }
+  .phase:last-child { margin-bottom: 0; }
+
+  .phase-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 10px;
+  }
+
+  .phase-num {
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: var(--accent);
+    color: var(--paper);
+    flex-shrink: 0;
+    font-weight: 600;
+  }
+
+  .phase-desc {
+    font-size: 0.82rem;
+    color: var(--slate);
+    margin-top: 3px;
+    line-height: 1.55;
+  }
+
+  .phase-name {
+    font-family: var(--mono);
+    font-size: 0.75rem;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    font-weight: 600;
+  }
+
+  .phase-steps {
+    list-style: none;
+    margin-left: 32px;
+    display: flex;
+    flex-direction: column;
+    gap: 7px;
+    border-left: 2px solid var(--line);
+    padding-left: 16px;
+  }
+
+  .phase-steps li {
+    font-size: 0.88rem;
+    color: var(--ink);
+  }
+
+  /* Resolve checklist */
+  .resolve-list {
+    list-style: none;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .resolve-item {
+    display: flex;
+    gap: 10px;
+    align-items: flex-start;
+    padding: 10px 12px;
+    border-radius: 8px;
+    background: var(--paper);
+  }
+
+  .resolve-item.done {
+    opacity: 0.5;
+  }
+
+  .resolve-check {
+    width: 17px;
+    height: 17px;
+    border-radius: 4px;
+    border: 1.5px solid var(--line-strong);
+    flex-shrink: 0;
+    margin-top: 2px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .resolve-item.done .resolve-check {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: white;
+    font-size: 0.6rem;
+  }
+
+  .resolve-text-wrap { flex: 1; }
+
+  .resolve-text {
+    font-size: 0.9rem;
+    color: var(--ink);
+  }
+
+  .resolve-item.done .resolve-text {
+    text-decoration: line-through;
+    color: var(--slate);
+  }
+
+  .resolve-search {
+    font-family: var(--mono);
+    font-size: 0.76rem;
+    color: var(--slate);
+    margin-top: 5px;
+    line-height: 1.6;
+  }
+
+  .resolve-search span {
+    background: var(--amber-soft);
+    color: var(--amber);
+    padding: 1px 6px;
+    border-radius: 4px;
+    margin-right: 4px;
+    display: inline-block;
+    margin-bottom: 3px;
+  }
+
+  ::selection { background: var(--accent-soft); }
+
+  ::-webkit-scrollbar { width: 9px; height: 9px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { background: var(--line-strong); border-radius: 5px; }
+
+  /* ============ MOBILE HEADER (sticky, colapsable) ============ */
+  .mobile-header {
+    display: none;
+  }
+
+  @media (max-width: 860px) {
+    .mobile-header {
+      display: block;
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: var(--panel);
+      border-bottom: 1px solid var(--line);
+      padding: 10px 14px 12px;
+    }
+
+    .mobile-header-top {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 8px;
+    }
+
+    .mobile-brand {
+      font-family: var(--serif);
+      font-size: 0.95rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .mobile-header-actions {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mobile-icon-btn,
+    .mobile-menu-btn {
+      background: none;
+      border: 1px solid var(--line-strong);
+      border-radius: 7px;
+      width: 32px;
+      height: 32px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: var(--ink);
+      cursor: pointer;
+    }
+
+    .mobile-icon-btn {
+      background: var(--accent);
+      border-color: var(--accent);
+      color: var(--paper);
+    }
+
+    .mobile-search-wrap {
+      position: relative;
+    }
+
+    .mobile-search-input {
+      padding: 9px 14px 9px 36px;
+      font-size: 0.85rem;
+      border-radius: 8px;
+    }
+
+    .mobile-header .search-icon {
+      left: 12px;
+    }
+
+    /* Sidebar se oculta por default en mobile, se muestra como drawer */
+    .sidebar {
+      position: fixed;
+      top: 0;
+      left: 0;
+      height: 100vh;
+      width: 260px;
+      z-index: 100;
+      transform: translateX(-100%);
+      transition: transform 0.18s ease;
+      box-shadow: 8px 0 24px rgba(0,0,0,0.12);
+    }
+
+    .sidebar.open {
+      transform: translateX(0);
+    }
+
+    .sidebar-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(26,24,21,0.35);
+      z-index: 90;
+    }
+
+    .sidebar-overlay.open {
+      display: block;
+    }
+
+    /* En mobile, no duplicamos buscador dentro del contenido principal */
+    .main .search-wrap {
+      display: none;
+    }
+  }
+
+  .sidebar-search {
+    margin-bottom: 20px;
+  }
+
+  .sidebar-search .search-input {
+    padding: 10px 14px 10px 36px;
+    font-size: 0.85rem;
+    border-radius: 8px;
+  }
+
+  .sidebar-search .search-icon {
+    left: 12px;
+  }
+
+  /* ============ RESULTADOS DE BÚSQUEDA POR SECCIÓN ============ */
+  .search-results-wrap {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+  }
+
+  .search-result-idea {
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-radius: 12px;
+    padding: 18px 20px;
+  }
+
+  .search-result-idea-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    cursor: pointer;
+  }
+
+  .search-result-idea-title {
+    font-family: var(--serif);
+    font-size: 1.05rem;
+    font-weight: 600;
+  }
+
+  .search-match {
+    margin-bottom: 8px;
+    padding-left: 12px;
+    border-left: 2px solid var(--line-strong);
+  }
+
+  .search-match:last-child { margin-bottom: 0; }
+
+  .search-match-section {
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--slate);
+    margin-bottom: 3px;
+  }
+
+  .search-match-text {
+    font-size: 0.85rem;
+    color: var(--ink);
+    line-height: 1.5;
+  }
+
+  .search-match-text mark {
+    background: var(--amber-soft);
+    color: var(--amber);
+    padding: 0 2px;
+    border-radius: 3px;
+    font-weight: 600;
+  }
+
+  /* ============ SIDEBAR ACTION BUTTONS ============ */
+  .sidebar-action-btn {
+    display: block;
+    width: 100%;
+    text-align: left;
+    padding: 9px 12px;
+    border-radius: 7px;
+    border: 1px solid var(--line);
+    background: var(--panel);
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    color: var(--ink);
+    cursor: pointer;
+    margin-bottom: 8px;
+  }
+
+  .sidebar-action-btn:last-child { margin-bottom: 0; }
+
+  .sidebar-action-btn:hover {
+    border-color: var(--line-strong);
+    background: var(--paper);
+  }
+
+  .drive-btn {
+    display: flex !important;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .drive-btn.connected {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .sidebar-action-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
+    font-weight: 600;
+  }
+
+  .sidebar-action-btn.primary:hover {
+    background: var(--accent-hover);
+  }
+
+  /* ============ MODALS ============ */
+  .modal-overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(26,24,21,0.4);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  .modal-overlay.open {
+    display: flex;
+  }
+
+  .modal-box {
+    background: var(--panel);
+    border-radius: 14px;
+    padding: 20px 24px;
+    max-width: 440px;
+    width: 100%;
+    max-height: 92vh;
+    overflow-y: auto;
+  }
+
+  .modal-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+  }
+
+  .modal-title {
+    font-family: var(--serif);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+
+  .modal-close {
+    background: none;
+    border: none;
+    font-size: 1.3rem;
+    color: var(--slate);
+    cursor: pointer;
+    line-height: 1;
+    padding: 2px 6px;
+  }
+
+  .modal-close:hover { color: var(--ink); }
+
+  .new-idea-tabs {
+    display: flex;
+    gap: 6px;
+    margin-bottom: 16px;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .new-idea-tab {
+    padding: 8px 4px 10px;
+    background: none;
+    border: none;
+    border-bottom: 2px solid transparent;
+    font-family: var(--sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: var(--slate);
+    cursor: pointer;
+    margin-bottom: -1px;
+  }
+
+  .new-idea-tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+  }
+
+  .new-idea-tab:not(.active):hover {
+    color: var(--ink);
+  }
+
+  .form-label {
+    display: block;
+    font-family: var(--mono);
+    font-size: 0.66rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--slate);
+    margin: 10px 0 5px;
+  }
+
+  .form-label:first-of-type { margin-top: 0; }
+
+  .form-input {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-size: 0.86rem;
+    color: var(--ink);
+    background: var(--paper);
+    outline: none;
+  }
+
+  .form-input:focus {
+    border-color: var(--accent);
+  }
+
+  .form-textarea {
+    min-height: 60px;
+    resize: vertical;
+    font-family: var(--sans);
+  }
+
+  .form-hint {
+    font-size: 0.74rem;
+    color: var(--slate);
+    margin-top: 8px;
+    line-height: 1.45;
+  }
+
+  .form-submit {
+    margin-top: 14px;
+    width: 100%;
+    padding: 10px;
+    border-radius: 8px;
+    border: none;
+    background: var(--accent);
+    color: var(--paper);
+    font-family: var(--sans);
+    font-size: 0.88rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+
+  .form-submit:hover {
+    background: var(--accent-hover);
+  }
+
+  .evolve-step {
+    padding: 16px 0;
+    border-top: 1px solid var(--line);
+  }
+
+  .evolve-step:first-of-type {
+    border-top: none;
+    padding-top: 4px;
+  }
+
+  .evolve-step-label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: var(--serif);
+    font-size: 1rem;
+    font-weight: 600;
+    margin-bottom: 8px;
+  }
+
+  .evolve-step-num {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    background: var(--amber);
+    color: var(--paper);
+    font-family: var(--mono);
+    font-size: 0.7rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  @media (max-height: 800px) {
+    .modal-box { max-height: 94vh; padding: 16px 22px; }
+    .modal-head { margin-bottom: 8px; }
+    .form-label { margin: 7px 0 4px; }
+    .form-textarea { min-height: 48px; }
+    .evolve-step { padding: 10px 0; }
+  }
+
+  /* ============ GENERIC DIALOG (confirm/alert replacement) ============ */
+  .dialog-actions {
+    display: flex;
+    gap: 10px;
+    margin-top: 20px;
+  }
+
+  .dialog-btn {
+    flex: 1;
+    padding: 11px;
+    border-radius: 8px;
+    font-family: var(--sans);
+    font-size: 0.87rem;
+    font-weight: 600;
+    cursor: pointer;
+    border: 1px solid var(--line-strong);
+    background: var(--panel);
+    color: var(--ink);
+  }
+
+  .dialog-btn:hover {
+    background: var(--paper);
+  }
+
+  .dialog-btn.primary {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
+  }
+
+  .dialog-btn.primary:hover {
+    background: var(--accent-hover);
+  }
+
+  .dialog-btn.danger {
+    background: var(--rust);
+    border-color: var(--rust);
+    color: var(--paper);
+  }
+
+  .dialog-btn.danger:hover {
+    filter: brightness(0.9);
+  }
+
+  /* ============ RESOLVE ITEM: add / delete ============ */
+  .resolve-add-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: none;
+    border: 1px dashed var(--line-strong);
+    border-radius: 8px;
+    padding: 8px 14px;
+    font-family: var(--sans);
+    font-size: 0.82rem;
+    color: var(--slate);
+    cursor: pointer;
+    margin-top: 10px;
+  }
+
+  .resolve-add-btn:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  .resolve-delete-btn {
+    background: none;
+    border: none;
+    color: var(--slate);
+    cursor: pointer;
+    font-size: 1rem;
+    padding: 2px 6px;
+    flex-shrink: 0;
+  }
+
+  .resolve-delete-btn:hover { color: var(--rust); }
+
+  .idea-delete-btn {
+    background: none;
+    border: 1px solid var(--line);
+    border-radius: 8px;
+    padding: 7px 13px;
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    color: var(--slate);
+    cursor: pointer;
+  }
+
+  .idea-delete-btn:hover {
+    border-color: var(--rust);
+    color: var(--rust);
+  }
+
+  /* ============ EXPORT OPTIONS MODAL ============ */
+  .export-options {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .export-option-btn {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    width: 100%;
+    text-align: left;
+    padding: 12px 14px;
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    background: var(--paper);
+    cursor: pointer;
+  }
+
+  .export-option-btn:hover {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+
+  .export-option-icon {
+    flex-shrink: 0;
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--accent);
+  }
+
+  .export-option-title {
+    display: block;
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--ink);
+  }
+
+  .export-option-desc {
+    display: block;
+    font-size: 0.76rem;
+    color: var(--slate);
+    margin-top: 1px;
+  }
+
+  /* ============ GO TO TOP (flotante) ============ */
+  .go-top-btn {
+    position: fixed;
+    bottom: 24px;
+    right: 24px;
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
+    background: var(--accent);
+    color: var(--paper);
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 4px 14px rgba(0,0,0,0.18);
+    opacity: 0;
+    visibility: hidden;
+    transform: translateY(8px);
+    transition: opacity 0.15s ease, transform 0.15s ease, visibility 0.15s;
+    z-index: 70;
+  }
+
+  .go-top-btn.visible {
+    opacity: 1;
+    visibility: visible;
+    transform: translateY(0);
+  }
+
+  .go-top-btn:hover {
+    background: var(--accent-hover);
+  }
+
+  @media (max-width: 860px) {
+    .go-top-btn {
+      bottom: 18px;
+      right: 18px;
+      width: 40px;
+      height: 40px;
+    }
+  }
+</style>
+</head>
+<body>
+
+<header class="mobile-header">
+  <div class="mobile-header-top">
+    <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
+    </button>
+    <div class="mobile-brand" onclick="goHome()">
+      <svg width="18" height="18" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-3px;margin-right:6px">
+        <g transform="translate(0,120) scale(0.1,-0.1)" fill="#8b7bd8" stroke="none">
+          <path d="M550 1154 c-14 -9 -37 -28 -51 -41 -22 -20 -30 -22 -53 -13 -110 42 -239 -47 -254 -175 -4 -37 -10 -49 -32 -60 -68 -35 -114 -119 -114 -210 0 -93 31 -146 131 -226 7 -5 13 -24 13 -42 0 -40 39 -125 71 -154 52 -48 137 -57 199 -22 l39 22 30 -26 c18 -15 50 -29 76 -33 60 -8 128 25 170 83 25 35 36 42 65 42 63 2 107 20 143 61 36 39 67 119 67 170 0 29 -27 118 -42 137 -6 7 -5 28 2 54 36 132 -59 289 -173 289 -17 0 -28 12 -45 50 -33 71 -79 103 -156 108 -46 2 -67 -1 -86 -14z m32 -346 c21 -17 77 -106 122 -197 30 -58 35 -76 24 -82 -26 -17 -88 -5 -88 16 0 30 -31 45 -93 45 -72 0 -82 -5 -97 -44 -10 -26 -14 -28 -51 -23 -22 3 -43 7 -45 10 -10 10 113 234 147 268 22 22 58 25 81 7z"/>
+          <path d="M521 691 c-23 -44 -20 -51 24 -51 17 0 34 3 38 6 6 6 -29 84 -38 84 -3 0 -13 -17 -24 -39z"/>
+          <path d="M1024 340 c-30 -12 -54 -49 -54 -83 0 -31 47 -87 74 -87 89 0 124 125 45 165 -32 17 -36 17 -65 5z"/>
+          <path d="M1072 133 c-25 -10 -34 -53 -17 -79 35 -53 119 -11 96 48 -13 33 -44 45 -79 31z"/>
+        </g>
+      </svg>Artdeas
+    </div>
+    <button class="mobile-icon-btn" onclick="openNewIdeaForm()" aria-label="New idea" title="New idea">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+    </button>
+  </div>
+  <div class="mobile-search-wrap">
+    <span class="search-icon">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+    </span>
+    <input class="search-input mobile-search-input" id="search-mobile" placeholder="Search all ideas..." oninput="onSearchInput(event)">
+  </div>
+</header>
+
+<div class="app">
+  <aside class="sidebar" id="sidebar">
+    <div class="brand-row">
+      <div class="brand-title-group" onclick="goHome()" style="cursor:pointer">
+        <svg class="brand-logo" width="22" height="22" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(0,120) scale(0.1,-0.1)" fill="#8b7bd8" stroke="none">
+            <path d="M550 1154 c-14 -9 -37 -28 -51 -41 -22 -20 -30 -22 -53 -13 -110 42 -239 -47 -254 -175 -4 -37 -10 -49 -32 -60 -68 -35 -114 -119 -114 -210 0 -93 31 -146 131 -226 7 -5 13 -24 13 -42 0 -40 39 -125 71 -154 52 -48 137 -57 199 -22 l39 22 30 -26 c18 -15 50 -29 76 -33 60 -8 128 25 170 83 25 35 36 42 65 42 63 2 107 20 143 61 36 39 67 119 67 170 0 29 -27 118 -42 137 -6 7 -5 28 2 54 36 132 -59 289 -173 289 -17 0 -28 12 -45 50 -33 71 -79 103 -156 108 -46 2 -67 -1 -86 -14z m32 -346 c21 -17 77 -106 122 -197 30 -58 35 -76 24 -82 -26 -17 -88 -5 -88 16 0 30 -31 45 -93 45 -72 0 -82 -5 -97 -44 -10 -26 -14 -28 -51 -23 -22 3 -43 7 -45 10 -10 10 113 234 147 268 22 22 58 25 81 7z"/>
+            <path d="M521 691 c-23 -44 -20 -51 24 -51 17 0 34 3 38 6 6 6 -29 84 -38 84 -3 0 -13 -17 -24 -39z"/>
+            <path d="M1024 340 c-30 -12 -54 -49 -54 -83 0 -31 47 -87 74 -87 89 0 124 125 45 165 -32 17 -36 17 -65 5z"/>
+            <path d="M1072 133 c-25 -10 -34 -53 -17 -79 35 -53 119 -11 96 48 -13 33 -44 45 -79 31z"/>
+          </g>
+        </svg>
+        <div class="brand-text">
+          <div class="brand">Artdeas</div>
+          <div class="brand-sub">Backlog · Tomas</div>
+        </div>
+      </div>
+      <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme"></button>
+    </div>
+
+    <div class="search-wrap sidebar-search">
+      <span class="search-icon">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </span>
+      <input class="search-input" id="search-sidebar" placeholder="Search all ideas..." oninput="onSearchInput(event)">
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-item home-item active" id="nav-todas" onclick="goHome()">
+        <span>Home</span>
+        <span class="count" id="count-todas">0</span>
+      </div>
+    </div>
+
+    <div class="nav-section">
+      <button class="sidebar-action-btn drive-btn" id="drive-connect-btn" onclick="connectGoogleDrive()">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" style="flex-shrink:0"><path d="M7.71 3.5L1.15 15l3.43 6h6.57L4.57 9.5H21L17.14 3.5H7.71z" fill="#0066DA"/><path d="M4.57 9.5L11.15 21h6.56L11.14 9.5H4.57z" fill="#00AC47"/><path d="M17.71 21l6.56-11.5-3.42-6h-6.57l6.57 11.5H10.86L14.29 21h3.42z" fill="#EA4335"/></svg>
+        <span id="drive-btn-label">Connect Google Drive</span>
+      </button>
+      <div id="sync-status" style="font-size:0.7rem;color:var(--slate);padding:4px 4px 0;line-height:1.4"></div>
+    </div>
+
+    <div class="nav-section">
+      <button class="sidebar-action-btn primary" onclick="openNewIdeaForm()">+ New idea</button>
+      <button class="sidebar-action-btn" onclick="exportBackup()">Backup your ideas</button>
+    </div>
+
+    <div class="nav-section">
+      <div class="nav-label">Categories</div>
+      <div id="nav-categorias"></div>
+    </div>
+
+    <div class="version-link" onclick="openChangelog()">v0.6.0 · What's new</div>
+  </aside>
+
+  <main class="main" id="main"></main>
+</div>
+<button class="go-top-btn" id="go-top-btn" onclick="scrollToTop()" aria-label="Volver arriba" title="Volver arriba">
+  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
+</button>
+<div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+
+<!-- MODAL: New idea -->
+<div class="modal-overlay" id="new-idea-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title">New idea</div>
+      <button class="modal-close" onclick="closeNewIdeaForm()">&times;</button>
+    </div>
+
+    <div class="new-idea-tabs">
+      <button class="new-idea-tab active" id="tab-manual" onclick="switchNewIdeaMode('manual')">Write it myself</button>
+      <button class="new-idea-tab" id="tab-import" onclick="switchNewIdeaMode('import')">Import from Claude</button>
+    </div>
+
+    <form id="new-idea-form" onsubmit="submitNewIdea(event)">
+      <label class="form-label">Title</label>
+      <input class="form-input" id="nid-titulo" required placeholder="E.g: Mirror — Mask Off">
+
+      <label class="form-label">Category</label>
+      <input class="form-input" id="nid-categoria" required placeholder="E.g: Short / Instagram Reel">
+
+      <label class="form-label">Initial status</label>
+      <select class="form-input" id="nid-estado">
+        <option value="idea">Idea</option>
+        <option value="en-curso">In progress</option>
+        <option value="pausada">Paused</option>
+        <option value="descartada">Discarded</option>
+        <option value="completada">Completed</option>
+      </select>
+
+      <label class="form-label">Description</label>
+      <textarea class="form-input form-textarea" id="nid-descripcion" placeholder="What the idea is about..."></textarea>
+
+      <div class="form-hint">Production plan and things to figure out are added later, from the detail view.</div>
+
+      <button type="submit" class="form-submit">Create idea</button>
+    </form>
+
+    <div id="import-panel" style="display:none">
+      <div class="form-hint" style="margin-bottom:12px">Paste the data block Claude gave you in chat after building your idea.</div>
+      <textarea class="form-input form-textarea" id="import-textarea" style="min-height:200px;font-family:var(--mono);font-size:0.78rem" placeholder='{"titulo": "...", "categoria": "...", ...}'></textarea>
+      <button class="form-submit" onclick="submitImport()">Import</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL: Evolve idea (unifica el viejo "Enrich idea" + "Complete info") -->
+<div class="modal-overlay" id="evolve-overlay">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title">Evolve idea</div>
+      <button class="modal-close" onclick="closeEvolveModal()">&times;</button>
+    </div>
+    <div class="form-hint" style="margin-bottom:12px">Working on: <strong id="evolve-idea-title" style="color:var(--ink)"></strong></div>
+
+    <div class="evolve-step">
+      <div class="evolve-step-label"><span class="evolve-step-num">1</span>Send this to Claude</div>
+      <div class="form-hint" style="margin-bottom:10px">Copy the prompt and paste it into a chat with Claude — it already includes everything this idea has so far.</div>
+      <button class="form-submit" style="margin-top:0" onclick="evolveCopyPrompt()">Copy prompt for Claude</button>
+    </div>
+
+    <div class="evolve-step">
+      <div class="evolve-step-label"><span class="evolve-step-num">2</span>Paste Claude's reply back here</div>
+      <div class="form-hint" style="margin-bottom:10px">When you're done chatting, Claude will give you a JSON block — paste it below to update this idea.</div>
+      <textarea class="form-input form-textarea" id="evolve-textarea" style="min-height:160px;font-family:var(--mono);font-size:0.78rem" placeholder='{"fases": {...}, "cosasAResolver": [...], ...}'></textarea>
+      <button class="form-submit" onclick="submitEvolve()">Update idea</button>
+    </div>
+  </div>
+</div>
+
+
+<!-- MODAL: Opciones de exportación (Copy / Share / Download) -->
+<div class="modal-overlay" id="export-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title">Export</div>
+      <button class="modal-close" onclick="closeExportOptions()">&times;</button>
+    </div>
+    <div class="form-hint" style="margin-bottom:14px">File: <strong id="export-filename" style="color:var(--ink)"></strong></div>
+    <div class="export-options">
+      <button class="export-option-btn" onclick="exportCopyToClipboard()">
+        <span class="export-option-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        </span>
+        <span>
+          <span class="export-option-title">Copy</span>
+          <span class="export-option-desc">Copies the content to your clipboard</span>
+        </span>
+      </button>
+      <button class="export-option-btn" onclick="exportShare()">
+        <span class="export-option-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        </span>
+        <span>
+          <span class="export-option-title">Share</span>
+          <span class="export-option-desc">Opens the system's share menu (WhatsApp, mail, Drive...)</span>
+        </span>
+      </button>
+      <button class="export-option-btn" onclick="exportDownload()">
+        <span class="export-option-icon">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        </span>
+        <span>
+          <span class="export-option-title">Download</span>
+          <span class="export-option-desc">Saves the file directly to the device. On iPhone, if this doesn't work well, try "Share" → Save to Files</span>
+        </span>
+      </button>
+    </div>
+    <div id="export-feedback" style="font-size:0.82rem;margin-top:12px;min-height:18px"></div>
+  </div>
+</div>
+
+<!-- MODAL: Changelog -->
+<div class="modal-overlay" id="changelog-overlay">
+  <div class="modal-box" style="max-width:480px">
+    <div class="modal-head">
+      <div class="modal-title">What's new</div>
+      <button class="modal-close" onclick="closeChangelog()">&times;</button>
+    </div>
+    <div id="changelog-body"></div>
+  </div>
+</div>
+
+<!-- MODAL: Generic confirm/alert (replaces native confirm()/alert()) -->
+<div class="modal-overlay" id="dialog-overlay">
+  <div class="modal-box" style="max-width:400px">
+    <div class="modal-head">
+      <div class="modal-title" id="dialog-title">Confirm</div>
+    </div>
+    <div class="form-hint" id="dialog-message" style="font-size:0.88rem;color:var(--ink);line-height:1.55;white-space:pre-line"></div>
+    <div class="dialog-actions" id="dialog-actions"></div>
+  </div>
+</div>
+
+
+<script>
+/* ==================================================================
+   DATOS POR DEFECTO — el contenido "de fábrica" del archivo, tal
+   como lo dejó Claude la última vez que lo regeneró. Ver
+   instrucciones completas en el comentario HTML al inicio del
+   archivo.
+
+   IMPORTANTE — PERSISTENCIA: esta página usa localStorage del
+   navegador para guardar los cambios que Tomas hace clickeando
+   (agregar ideas, tildar cosas a resolver, etc). Eso significa:
+     - Los cambios quedan guardados en ESTE navegador, en ESTA PC,
+       aunque cierres y vuelvas a abrir el archivo.
+     - Si Tomas abre el archivo en otra compu o navegador, va a ver
+       los datos de acá abajo (IDEAS_DEFAULT), no los cambios locales.
+     - localStorage puede borrarse si se limpia el caché del
+       navegador. Para tener un respaldo real, Tomas puede usar el
+       botón "Export" para bajar un .html actualizado con todo
+       incluido, o pedirle a Claude que lo regenere en el chat.
+================================================================== */
+// Sin login: arranca vacío. El usuario ve una página en blanco lista para
+// que cree sus propias ideas (que se guardan en localStorage hasta que
+// se loguee, momento en el que se reemplazan por lo que haya en su Drive).
+const IDEAS_DEFAULT = [];
+
+/* ==================================================================
+   PERSISTENCIA — Google Drive API
+   La fuente de verdad es un archivo JSON en el Google Drive de
+   Tomas (mismo Drive donde vive este propio ideas.html). Se accede
+   vía OAuth (Google Identity Services, flujo implicit/token client)
+   con el scope "drive.file", que solo da acceso a archivos creados
+   por esta app — no a todo el Drive del usuario.
+
+   Uso de un solo usuario: no hay manejo de conflictos entre
+   ediciones simultáneas de distintos dispositivos. Última escritura
+   gana. Si Tomas edita desde dos lugares a la vez, puede perder
+   cambios — esto es aceptable para uso personal, no para multiusuario.
+
+   localStorage se sigue usando como caché rápida y como fallback si
+   Drive no está disponible (sin conexión, token vencido, etc), para
+   que la app siga siendo usable offline en modo lectura/edición
+   local, con sincronización a Drive cuando vuelve la conexión.
+================================================================== */
+
+// TODO(Tomas/Claude): completar con el Client ID real de Google
+// Cloud Console (OAuth 2.0 Client ID, tipo "Web application").
+const GOOGLE_CLIENT_ID = "1024164485431-9h1o8dauc3nrf2o0gbc7hqugkurf57uv.apps.googleusercontent.com";
+const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
+const TOMAS_EMAIL = "tomaspcarballes@gmail.com"; // usado solo para mostrarle a Tomas el changelog completo (patches internos); cualquier otra cuenta ve solo las versiones públicas
+const DRIVE_DATA_FILENAME = "artdeas-data.json";
+const STORAGE_KEY = "artdeas_cache_v1"; // caché local, no fuente de verdad
+const TOKEN_STORAGE_KEY = "artdeas_gtoken_v1";
+
+let driveFileId = null; // id del archivo de datos en Drive, una vez localizado/creado
+let accessToken = null;
+let tokenClient = null;
+let driveReady = false; // true cuando ya se autenticó y confirmó el archivo de datos
+let currentUserEmail = null; // email de la cuenta de Google conectada, o null si no hay sesión
+
+async function fetchCurrentUserEmail() {
+  try {
+    const res = await fetch("https://www.googleapis.com/oauth2/v3/userinfo", {
+      headers: { Authorization: `Bearer ${accessToken}` }
+    });
+    if (!res.ok) return null;
+    const data = await res.json();
+    return data.email || null;
+  } catch (e) {
+    return null;
+  }
+}
+
+function isStorageAvailable() {
+  try {
+    if (typeof localStorage === "undefined" || localStorage === null) return false;
+    const testKey = "__storage_test__";
+    localStorage.setItem(testKey, "1");
+    localStorage.removeItem(testKey);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+const STORAGE_OK = isStorageAvailable();
+
+function loadCachedIdeas() {
+  if (STORAGE_OK) {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) return JSON.parse(raw);
+    } catch (e) {
+      console.error("No se pudo leer caché local:", e);
+    }
+  }
+  return JSON.parse(JSON.stringify(IDEAS_DEFAULT)); // copia profunda
+}
+
+function saveCachedIdeas() {
+  if (!STORAGE_OK) return;
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(IDEAS));
+  } catch (e) {
+    console.error("No se pudo guardar caché local:", e);
+  }
+}
+
+// Arranca siempre con la caché local (o los datos de fábrica) para
+// que la página se vea de inmediato sin esperar el login de Google.
+// Una vez que Drive confirma sesión, initDriveSync() puede
+// reemplazar IDEAS con lo que haya en Drive si es más reciente.
+let IDEAS = loadCachedIdeas();
+
+/* ---------------- Google Identity Services (login) ---------------- */
+
+function loadGisScript() {
+  return new Promise((resolve, reject) => {
+    if (window.google && window.google.accounts && window.google.accounts.oauth2) {
+      resolve();
+      return;
+    }
+    const script = document.createElement("script");
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    script.onload = resolve;
+    script.onerror = () => reject(new Error("No se pudo cargar Google Identity Services"));
+    document.head.appendChild(script);
+  });
+}
+
+function getSavedToken() {
+  if (!STORAGE_OK) return null;
+  try {
+    const raw = localStorage.getItem(TOKEN_STORAGE_KEY);
+    if (!raw) return null;
+    const parsed = JSON.parse(raw);
+    if (parsed.expiresAt && Date.now() < parsed.expiresAt) return parsed.token;
+    return null; // vencido
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveToken(token, expiresInSeconds) {
+  accessToken = token;
+  if (!STORAGE_OK) return;
+  try {
+    const expiresAt = Date.now() + (expiresInSeconds - 60) * 1000; // margen de 60s
+    localStorage.setItem(TOKEN_STORAGE_KEY, JSON.stringify({ token, expiresAt }));
+  } catch (e) {
+    console.error("No se pudo guardar el token:", e);
+  }
+}
+
+async function ensureGoogleAuth() {
+  await loadGisScript();
+  const saved = getSavedToken();
+  if (saved) {
+    accessToken = saved;
+    return true;
+  }
+  return new Promise((resolve) => {
+    tokenClient = google.accounts.oauth2.initTokenClient({
+      client_id: GOOGLE_CLIENT_ID,
+      scope: DRIVE_SCOPE,
+      callback: (resp) => {
+        if (resp.error) {
+          console.error("Error de auth Google:", resp);
+          resolve(false);
+          return;
+        }
+        saveToken(resp.access_token, resp.expires_in);
+        resolve(true);
+      },
+    });
+    tokenClient.requestAccessToken({ prompt: "select_account" });
+  });
+}
+
+/* ---------------- Google Drive REST calls ---------------- */
+
+async function driveFindDataFile() {
+  const q = encodeURIComponent(`name='${DRIVE_DATA_FILENAME}' and trashed=false`);
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  if (!res.ok) throw new Error("Error buscando archivo en Drive: " + res.status);
+  const data = await res.json();
+  return data.files && data.files.length ? data.files[0] : null;
+}
+
+async function driveCreateDataFile(initialIdeas) {
+  const metadata = { name: DRIVE_DATA_FILENAME, mimeType: "application/json" };
+  const boundary = "artdeas-boundary";
+  const body =
+    `--${boundary}\r\nContent-Type: application/json; charset=UTF-8\r\n\r\n${JSON.stringify(metadata)}\r\n` +
+    `--${boundary}\r\nContent-Type: application/json\r\n\r\n${JSON.stringify(initialIdeas)}\r\n--${boundary}--`;
+  const res = await fetch("https://www.googleapis.com/upload/drive/v3/files?uploadType=multipart&fields=id", {
+    method: "POST",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": `multipart/related; boundary=${boundary}`
+    },
+    body
+  });
+  if (!res.ok) throw new Error("Error creando archivo en Drive: " + res.status);
+  const data = await res.json();
+  return data.id;
+}
+
+async function driveReadDataFile(fileId) {
+  const res = await fetch(`https://www.googleapis.com/drive/v3/files/${fileId}?alt=media`, {
+    headers: { Authorization: `Bearer ${accessToken}` }
+  });
+  if (!res.ok) throw new Error("Error leyendo archivo de Drive: " + res.status);
+  return res.json();
+}
+
+async function driveWriteDataFile(fileId, ideasData) {
+  const res = await fetch(`https://www.googleapis.com/upload/drive/v3/files/${fileId}?uploadType=media`, {
+    method: "PATCH",
+    headers: {
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json"
+    },
+    body: JSON.stringify(ideasData)
+  });
+  if (!res.ok) throw new Error("Error guardando en Drive: " + res.status);
+}
+
+/* ---------------- Orquestación: init + save ---------------- */
+
+async function initDriveSync(ideasParaCrearSiNoExiste) {
+  try {
+    const ok = await ensureGoogleAuth();
+    if (!ok) {
+      setSyncStatus("No connection to Google Drive. Working in local mode.", true);
+      return;
+    }
+    currentUserEmail = await fetchCurrentUserEmail();
+    let file = await driveFindDataFile();
+    if (!file) {
+      // Primera vez que esta cuenta usa Artdeas: recién ahí tiene
+      // sentido "sembrar" el archivo de Drive con lo que había en
+      // local (si el usuario confirmó eso, ver connectGoogleDrive).
+      const seed = ideasParaCrearSiNoExiste || [];
+      const newId = await driveCreateDataFile(seed);
+      driveFileId = newId;
+      IDEAS = seed;
+      saveCachedIdeas();
+      render();
+    } else {
+      // Ya existe un archivo de datos para esta cuenta: ESE es la
+      // fuente de verdad, reemplaza lo que hubiera en pantalla sin
+      // importar si era anónimo o de otra sesión.
+      driveFileId = file.id;
+      const remoteIdeas = await driveReadDataFile(driveFileId);
+      IDEAS = Array.isArray(remoteIdeas) ? remoteIdeas : [];
+      saveCachedIdeas();
+      render();
+    }
+    driveReady = true;
+    updateDriveButtonUI();
+    setSyncStatus("Synced with Google Drive.", false);
+  } catch (e) {
+    console.error("No se pudo sincronizar con Drive:", e);
+    setSyncStatus("Could not connect to Google Drive. Working in local mode.", true);
+  }
+}
+
+function setSyncStatus(msg, isWarning) {
+  const el = document.getElementById("sync-status");
+  if (!el) return;
+  el.textContent = msg;
+  el.style.color = isWarning ? "var(--rust)" : "var(--slate)";
+}
+
+// saveIdeas() guarda siempre en caché local al instante (para que la
+// UI nunca espere a la red), y además intenta escribir a Drive en
+// segundo plano si ya hay sesión activa.
+function saveIdeas() {
+  saveCachedIdeas();
+  if (driveReady && driveFileId && accessToken) {
+    driveWriteDataFile(driveFileId, IDEAS).catch(e => {
+      console.error("No se pudo guardar en Drive:", e);
+      setSyncStatus("Change saved locally. Drive sync failed.", true);
+    });
+  }
+}
+
+// connectGoogleDrive() es lo que dispara el botón de la sidebar
+// cuando NO hay sesión activa. Si hay ideas locales (creadas sin
+// login) en este momento, avisamos ANTES de loguear que van a dejar
+// de verse (se reemplazan por lo que haya en el Drive de la cuenta,
+// o quedan como semilla inicial si es la primera vez que esa cuenta
+// usa Artdeas) — así nadie pierde datos sin enterarse.
+async function connectGoogleDrive() {
+  if (driveReady) {
+    disconnectGoogleDrive();
+    return;
+  }
+  const hayIdeasLocales = IDEAS.length > 0;
+  if (hayIdeasLocales) {
+    const confirmado = await showConfirm(
+      `You have ${IDEAS.length} idea(s) saved on this device without a connected account.\n\n` +
+      `Connecting Google Drive will show the ideas from your Drive account instead (or start empty if it's your first time) — ` +
+      `your current local ideas will stop being visible here.\n\n` +
+      `Continue? (Tip: if unsure, cancel and use "Backup your data" first to keep a copy.)`,
+      { title: "Connect Google Drive", confirmLabel: "Continue", danger: false }
+    );
+    if (!confirmado) return;
+  }
+  setSyncStatus("Connecting to Google Drive...", false);
+  initDriveSync(IDEAS); // si la cuenta es nueva, se ofrece esto como semilla
+}
+
+// disconnectGoogleDrive(): borra el token guardado y vuelve la app
+// al modo anónimo, con las ideas en memoria pasando a vivir solo en
+// localStorage otra vez (no se borra el archivo de Drive, solo se
+// corta la sesión local — el archivo sigue ahí para la próxima vez
+// que el usuario se loguee con esa cuenta).
+async function disconnectGoogleDrive() {
+  const confirmado = await showConfirm("You'll go back to local-only mode on this device.", { title: "Disconnect Google Drive?", confirmLabel: "Disconnect", danger: true });
+  if (!confirmado) return;
+  driveReady = false;
+  driveFileId = null;
+  accessToken = null;
+  currentUserEmail = null;
+  if (STORAGE_OK) {
+    try { localStorage.removeItem(TOKEN_STORAGE_KEY); } catch(e) {}
+  }
+  updateDriveButtonUI();
+  setSyncStatus("Disconnected. Working in local mode.", false);
+}
+
+function updateDriveButtonUI() {
+  const btn = document.getElementById("drive-connect-btn");
+  const label = document.getElementById("drive-btn-label");
+  if (!btn || !label) return;
+  if (driveReady) {
+    btn.classList.add("connected");
+    label.textContent = "Disconnect Google Drive";
+  } else {
+    btn.classList.remove("connected");
+    label.textContent = "Connect Google Drive";
+  }
+}
+
+/* ==================================================================
+   TEMA (claro / oscuro)
+================================================================== */
+const THEME_KEY = "ideas_producciones_tema";
+
+function applyTheme(theme) {
+  if (theme === "dark") {
+    document.documentElement.setAttribute("data-theme", "dark");
+  } else {
+    document.documentElement.removeAttribute("data-theme");
+  }
+  const meta = document.getElementById("meta-theme-color");
+  if (meta) meta.setAttribute("content", theme === "dark" ? "#18141f" : "#f8f4e9");
+}
+
+function toggleTheme() {
+  const current = document.documentElement.getAttribute("data-theme") === "dark" ? "dark" : "light";
+  const next = current === "dark" ? "light" : "dark";
+  applyTheme(next);
+  if (STORAGE_OK) { try { localStorage.setItem(THEME_KEY, next); } catch(e) {} }
+}
+
+(function initTheme() {
+  let saved = null;
+  if (STORAGE_OK) { try { saved = localStorage.getItem(THEME_KEY); } catch(e) {} }
+  if (saved) {
+    applyTheme(saved);
+  } else if (window.matchMedia && window.matchMedia("(prefers-color-scheme: dark)").matches) {
+    applyTheme("dark");
+  }
+})();
+
+/* ==================================================================
+   GO TO TOP (botón flotante)
+================================================================== */
+const GO_TOP_THRESHOLD = 400; // px scrolleados antes de mostrar el botón
+
+function scrollToTop() {
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+function updateGoTopVisibility() {
+  const btn = document.getElementById("go-top-btn");
+  if (!btn) return;
+  if (window.scrollY > GO_TOP_THRESHOLD) {
+    btn.classList.add("visible");
+  } else {
+    btn.classList.remove("visible");
+  }
+}
+
+window.addEventListener("scroll", updateGoTopVisibility, { passive: true });
+
+/* ==================================================================
+   CONFIG DE ESTADOS
+================================================================== */
+const ESTADOS = {
+  "idea":        { label: "Idea",        color: "#5c6470", soft: "#eaecee" },
+  "en-curso":    { label: "In progress",    color: "#8b7bd8", soft: "#ebe7fa" },
+  "pausada":     { label: "Paused",     color: "#a6702c", soft: "#f3e7d3" },
+  "descartada":  { label: "Discarded",  color: "#a13f2e", soft: "#f4e2dd" },
+  "completada":  { label: "Completed",  color: "#8b7bd8", soft: "#ebe7fa" }
+};
+
+const FASE_LABELS = {
+  preproduccion: "Preproduction",
+  pruebasTecnicas: "Technical tests",
+  filmacion: "Filming",
+  produccion3d: "3D Production",
+  postproduccion: "Postproduction",
+  distribucion: "Distribution"
+};
+
+/* ==================================================================
+   CHANGELOG
+   Versioning scheme: 0.x.0 = minor version, for new user-facing
+   features (a new button, a new view, a new capability). 0.x.Y =
+   patch, for small fixes/tweaks — several patches can happen in one
+   work session and get grouped under a single entry when it makes
+   sense, rather than logging every tiny change.
+
+   Each entry has "public: true/false". Public entries are visible
+   to any user. Non-public (internal) entries are only shown when
+   the logged-in account matches TOMAS_EMAIL — meant for more
+   granular/technical notes Tomas wants to track for himself without
+   cluttering the changelog for other users.
+
+   IMPORTANT FOR CLAUDE: when adding a new changelog entry, decide
+   whether it's a new minor version (0.x.0, always public) or a
+   patch bump (0.x.Y). Group several small fixes from the same work
+   session into one patch entry instead of one entry per change.
+   Mark internal/technical details as public:false; keep the
+   public:true items written for a general user, not implementation
+   details.
+================================================================== */
+const CHANGELOG_DATA = [
+  {
+    version: "0.6.0",
+    public: true,
+    items: [
+      "Purple accent color, consistent across light and dark mode",
+      "\"Import from Claude\" is now a tab inside \"New idea\" instead of a separate button",
+      "Unified the download buttons into a single \"Backup your ideas\" option",
+      "Native browser confirm/alert dialogs replaced with Artdeas-styled modals"
+    ]
+  },
+  {
+    version: "0.5.0",
+    public: true,
+    items: [
+      "Redesigned home screen: big centered logo and title, with a \"Create new idea\" button",
+      "Menu button moved to the left on mobile (matches the side the menu opens from)",
+      "\"Evolve idea\": merged the old \"Enrich idea\" and \"Complete info\" buttons into a single guided flow"
+    ]
+  },
+  {
+    version: "0.4.0",
+    public: true,
+    items: [
+      "Full English translation of the interface",
+      "Custom logo next to the app name",
+      "Google Drive connect/disconnect button with icon",
+      "Changelog panel (this one!)"
+    ]
+  },
+  {
+    version: "0.3.0",
+    public: true,
+    items: [
+      "Google Drive sync: sign in to keep your ideas saved to your own Drive account, accessible from any device",
+      "Anonymous mode: use the app without an account, with local browser storage"
+    ]
+  },
+  {
+    version: "0.2.0",
+    public: true,
+    items: [
+      "Redesigned navigation: dedicated pages per status/category with a back button, instead of everything on one screen",
+      "Deep search across all fields (title, description, notes, production plan, things to figure out), with results grouped by section",
+      "Dark mode",
+      "\"Enrich idea\" and \"Complete info\" buttons to work on an idea together with Claude in chat"
+    ]
+  },
+  {
+    version: "0.1.0",
+    public: true,
+    items: [
+      "First version: idea backlog with status, difficulty and time fields, phase-based production plan, and a things-to-figure-out checklist"
+    ]
+  }
+];
+
+/* ==================================================================
+   GENERIC DIALOG — replaces native confirm()/alert() with our own
+   styled modal. showConfirm() resolves to true/false depending on
+   which button the user clicked; showAlert() resolves once the user
+   dismisses it. Both are promise-based so existing async functions
+   can just `await` them in place of the native calls.
+================================================================== */
+let dialogResolve = null;
+
+function showConfirm(message, opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    dialogResolve = resolve;
+    document.getElementById("dialog-title").textContent = opts.title || "Confirm";
+    document.getElementById("dialog-message").textContent = message;
+    document.getElementById("dialog-actions").innerHTML = `
+      <button class="dialog-btn" onclick="resolveDialog(false)">${opts.cancelLabel || "Cancel"}</button>
+      <button class="dialog-btn ${opts.danger ? 'danger' : 'primary'}" onclick="resolveDialog(true)">${opts.confirmLabel || "OK"}</button>
+    `;
+    document.getElementById("dialog-overlay").classList.add("open");
+  });
+}
+
+function showAlert(message, opts) {
+  opts = opts || {};
+  return new Promise(resolve => {
+    dialogResolve = resolve;
+    document.getElementById("dialog-title").textContent = opts.title || "Notice";
+    document.getElementById("dialog-message").textContent = message;
+    document.getElementById("dialog-actions").innerHTML = `
+      <button class="dialog-btn primary" onclick="resolveDialog(true)" style="flex:none;margin-left:auto">OK</button>
+    `;
+    document.getElementById("dialog-overlay").classList.add("open");
+  });
+}
+
+function resolveDialog(value) {
+  document.getElementById("dialog-overlay").classList.remove("open");
+  if (dialogResolve) {
+    dialogResolve(value);
+    dialogResolve = null;
+  }
+}
+
+function openChangelog() {
+  renderChangelogModal();
+  document.getElementById("changelog-overlay").classList.add("open");
+}
+
+function closeChangelog() {
+  document.getElementById("changelog-overlay").classList.remove("open");
+}
+
+function isInternalViewer() {
+  return driveReady && currentUserEmail === TOMAS_EMAIL;
+}
+
+function renderChangelogModal() {
+  const showInternal = isInternalViewer();
+  const entries = CHANGELOG_DATA.filter(e => e.public || showInternal);
+  const body = document.getElementById("changelog-body");
+  body.innerHTML = entries.map(e => `
+    <div class="changelog-entry">
+      <div class="changelog-version">
+        <span class="changelog-version-num">v${e.version}</span>
+        ${!e.public ? '<span class="badge badge-metric" style="font-size:0.62rem;padding:2px 6px">internal</span>' : ''}
+      </div>
+      <ul class="changelog-items">
+        ${e.items.map(i => `<li>${escapeHtml(i)}</li>`).join("")}
+      </ul>
+    </div>
+  `).join("");
+}
+
+/* ==================================================================
+   ESTADO DE LA APP — navegación tipo "páginas" sin recargar
+   view: "home" | "status" | "categoria" | "detalle"
+================================================================== */
+let view = "home";
+let viewParam = null; // status key, categoria name, o idea id según la view
+let currentSearch = "";
+
+function getCategorias() {
+  return [...new Set(IDEAS.map(i => i.categoria))].sort();
+}
+
+function scopedIdeas() {
+  if (view === "status") return IDEAS.filter(i => i.estado === viewParam);
+  if (view === "categoria") return IDEAS.filter(i => i.categoria === viewParam);
+  return IDEAS;
+}
+
+function filteredIdeas() {
+  const base = scopedIdeas();
+  if (!currentSearch) return base;
+  const matchIds = new Set(deepSearch(currentSearch).map(r => r.idea.id));
+  return base.filter(idea => matchIds.has(idea.id));
+}
+
+function goHome() {
+  view = "home";
+  viewParam = null;
+  currentSearch = "";
+  syncSearchInputs();
+  render();
+  window.scrollTo(0,0);
+  closeMobileMenu();
+}
+
+function goStatus(status) {
+  view = "status";
+  viewParam = status;
+  currentSearch = "";
+  syncSearchInputs();
+  render();
+  window.scrollTo(0,0);
+  closeMobileMenu();
+}
+
+function goCategoria(cat) {
+  view = "categoria";
+  viewParam = cat;
+  currentSearch = "";
+  syncSearchInputs();
+  render();
+  window.scrollTo(0,0);
+  closeMobileMenu();
+}
+
+function openDetail(id) {
+  view = "detalle";
+  viewParam = id;
+  currentSearch = "";
+  syncSearchInputs();
+  render();
+  window.scrollTo(0,0);
+  closeMobileMenu();
+}
+
+function goBack() {
+  goHome();
+}
+
+function toggleMobileMenu() {
+  document.getElementById("sidebar").classList.toggle("open");
+  document.getElementById("sidebar-overlay").classList.toggle("open");
+}
+
+function closeMobileMenu() {
+  document.getElementById("sidebar").classList.remove("open");
+  document.getElementById("sidebar-overlay").classList.remove("open");
+}
+
+function toggleResolve(ideaId, idx) {
+  const idea = IDEAS.find(i => i.id === ideaId);
+  if (idea) {
+    idea.cosasAResolver[idx].resuelto = !idea.cosasAResolver[idx].resuelto;
+    saveIdeas();
+    render();
+  }
+}
+
+function addResolverItem(ideaId) {
+  const texto = prompt("What thing to figure out do you want to add?");
+  if (!texto || !texto.trim()) return;
+  const idea = IDEAS.find(i => i.id === ideaId);
+  if (!idea) return;
+  idea.cosasAResolver.push({ texto: texto.trim(), resuelto: false, busqueda: null });
+  saveIdeas();
+  render();
+}
+
+function deleteResolverItem(ideaId, idx) {
+  const idea = IDEAS.find(i => i.id === ideaId);
+  if (!idea) return;
+  idea.cosasAResolver.splice(idx, 1);
+  saveIdeas();
+  render();
+}
+
+async function deleteIdea(ideaId) {
+  const idea = IDEAS.find(i => i.id === ideaId);
+  if (!idea) return;
+  const confirmado = await showConfirm(`This action cannot be undone.`, { title: `Delete "${idea.titulo}"?`, confirmLabel: "Delete", danger: true });
+  if (!confirmado) return;
+  IDEAS = IDEAS.filter(i => i.id !== ideaId);
+  saveIdeas();
+  goHome();
+}
+
+/* ==================================================================
+   CREAR IDEA — formulario simple desde la página
+================================================================== */
+function openNewIdeaForm() {
+  switchNewIdeaMode("manual");
+  document.getElementById("new-idea-overlay").classList.add("open");
+  document.getElementById("nid-titulo").focus();
+}
+
+function closeNewIdeaForm() {
+  document.getElementById("new-idea-overlay").classList.remove("open");
+  document.getElementById("new-idea-form").reset();
+  document.getElementById("import-textarea").value = "";
+}
+
+function switchNewIdeaMode(mode) {
+  const isManual = mode === "manual";
+  document.getElementById("tab-manual").classList.toggle("active", isManual);
+  document.getElementById("tab-import").classList.toggle("active", !isManual);
+  document.getElementById("new-idea-form").style.display = isManual ? "" : "none";
+  document.getElementById("import-panel").style.display = isManual ? "none" : "";
+  if (!isManual) {
+    document.getElementById("import-textarea").focus();
+  }
+}
+
+function slugify(str) {
+  return str.toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-|-$)/g, "") || "idea-" + Date.now();
+}
+
+function submitNewIdea(e) {
+  e.preventDefault();
+  const titulo = document.getElementById("nid-titulo").value.trim();
+  const categoria = document.getElementById("nid-categoria").value.trim();
+  const descripcion = document.getElementById("nid-descripcion").value.trim();
+  const estado = document.getElementById("nid-estado").value;
+  if (!titulo || !categoria) return;
+
+  let id = slugify(titulo);
+  if (IDEAS.some(i => i.id === id)) id = id + "-" + Date.now();
+
+  IDEAS.push({
+    id, titulo, categoria, estado,
+    dificultad: null, tiempo: null,
+    descripcion: descripcion || "No description yet.",
+    notas: [],
+    fases: { preproduccion: [], pruebasTecnicas: [], filmacion: [], produccion3d: [], postproduccion: [], distribucion: [] },
+    cosasAResolver: []
+  });
+  saveIdeas();
+  closeNewIdeaForm();
+  openDetail(id);
+}
+
+/* ==================================================================
+   IMPORTAR / EXPORTAR — para pegar ideas armadas en el chat con
+   Claude, o hacer backup completo del archivo.
+================================================================== */
+
+async function submitImport() {
+  const raw = document.getElementById("import-textarea").value.trim();
+  if (!raw) return;
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    await showAlert("Paste exactly the block Claude gave you, without adding or removing anything.", { title: "That's not valid JSON" });
+    return;
+  }
+  const items = Array.isArray(parsed) ? parsed : [parsed];
+  let count = 0;
+  items.forEach(item => {
+    if (!item.titulo) return;
+    if (!item.id) item.id = slugify(item.titulo);
+    if (IDEAS.some(i => i.id === item.id)) item.id = item.id + "-" + Date.now();
+    // Completar campos faltantes con valores por defecto
+    item.categoria = item.categoria || "No category";
+    item.estado = item.estado || "idea";
+    item.dificultad = item.dificultad ?? null;
+    item.tiempo = item.tiempo ?? null;
+    item.descripcion = item.descripcion || "";
+    item.notas = item.notas || [];
+    item.fases = item.fases || { preproduccion: [], pruebasTecnicas: [], filmacion: [], produccion3d: [], postproduccion: [], distribucion: [] };
+    item.cosasAResolver = item.cosasAResolver || [];
+    IDEAS.push(item);
+    count++;
+  });
+  saveIdeas();
+  closeNewIdeaForm();
+  await showAlert(count === 1 ? "Idea imported successfully." : `${count} ideas imported successfully.`, { title: "Done" });
+  goHome();
+}
+
+/* ==================================================================
+   COMPLETAR / ACTUALIZAR INFO — a diferencia de "Import desde
+   Claude" (que crea una idea nueva), esto actualiza los campos de
+   una idea que YA existe. Sirve para el caso típico: creaste la
+   idea con el formulario rápido (solo título/categoría/descripción),
+   charlaste con Claude en el chat para armar el plan de producción
+   completo, y ahora pegás ese JSON para completar la ficha sin
+   duplicar la idea.
+
+   Comportamiento del merge (campo por campo):
+   - titulo, categoria, estado, dificultad, tiempo, descripcion:
+     se reemplazan SOLO si el JSON pegado trae ese campo definido
+     (no null/undefined). Si no lo trae, se conserva el valor actual.
+   - notas: se reemplaza el array completo si el JSON trae "notas".
+   - fases: se mergea fase por fase — si el JSON trae contenido para
+     "preproduccion", reemplaza esa fase puntual; las fases que el
+     JSON no menciona quedan como estaban.
+   - cosasAResolver: se AGREGAN los ítems nuevos del JSON a la lista
+     existente (no se pisan los que ya estaban, para no perder
+     progreso de cosas ya tildadas).
+================================================================== */
+/* ==================================================================
+   ENRIQUECER IDEA — arma un mensaje con toda la info actual de la
+   idea, listo para pegar en un chat con Claude. No hay forma de que
+   un botón en esta página dispare una conversación automática en
+   Claude (no existe un canal en vivo entre esta página y el chat),
+   así que en vez de eso armamos el mensaje y se lo damos a Tomas
+   para que lo pegue él mismo — mismo mecanismo de Copy/Share/
+   Download que ya usa el resto de la página.
+================================================================== */
+function buildEnrichMessage(idea) {
+  const faseOrden = ["preproduccion", "pruebasTecnicas", "filmacion", "produccion3d", "postproduccion", "distribucion"];
+  const fasesConContenido = faseOrden.filter(f => idea.fases[f] && idea.fases[f].length);
+
+  let msg = `I want to develop this idea from my Artdeas backlog further. Ask me one question at a time (don't dump a long list of questions at once), and for anything I don't know how to solve, give me a short search hint in English.\n\n`;
+  msg += `TITLE: ${idea.titulo}\n`;
+  msg += `CATEGORY: ${idea.categoria}\n`;
+  msg += `STATUS: ${idea.estado}\n\n`;
+  msg += `CURRENT DESCRIPTION:\n${idea.descripcion}\n\n`;
+
+  if (idea.notas.length) {
+    msg += `CURRENT NOTES:\n${idea.notas.map(n => "- " + n).join("\n")}\n\n`;
+  }
+
+  if (fasesConContenido.length) {
+    msg += `CURRENT PRODUCTION PLAN:\n`;
+    fasesConContenido.forEach(f => {
+      msg += `${FASE_LABELS[f]}:\n`;
+      idea.fases[f].forEach(step => {
+        msg += "- " + stepText(step) + "\n";
+      });
+    });
+    msg += "\n";
+  } else {
+    msg += `PRODUCTION PLAN: nothing defined yet.\n\n`;
+  }
+
+  if (idea.cosasAResolver.length) {
+    msg += `CURRENT THINGS TO FIGURE OUT:\n`;
+    idea.cosasAResolver.forEach(item => {
+      msg += `- ${item.texto}${item.resuelto ? " (already resolved)" : ""}\n`;
+    });
+    msg += "\n";
+  }
+
+  msg += `Help me expand and flesh out this idea: fill in whatever's missing from the production plan, suggest more things to figure out if it makes sense, and when we're done, update the file directly in my Google Drive (you already have access).`;
+
+  return msg;
+}
+
+/* ==================================================================
+   EVOLVE IDEA — unifies what used to be two separate buttons
+   ("Enrich idea" + "Complete info") into a single modal: the top
+   half copies a ready-made message for Claude (built from the
+   idea's current data), the bottom half is where the user pastes
+   Claude's JSON reply back to update the idea in place.
+================================================================== */
+let pendingEvolveIdeaId = null;
+
+function openEvolveModal(ideaId) {
+  const idea = IDEAS.find(i => i.id === ideaId);
+  if (!idea) return;
+  pendingEvolveIdeaId = ideaId;
+  document.getElementById("evolve-idea-title").textContent = idea.titulo;
+  document.getElementById("evolve-textarea").value = "";
+  document.getElementById("evolve-overlay").classList.add("open");
+}
+
+function closeEvolveModal() {
+  document.getElementById("evolve-overlay").classList.remove("open");
+  document.getElementById("evolve-textarea").value = "";
+  pendingEvolveIdeaId = null;
+}
+
+function evolveCopyPrompt() {
+  const idea = IDEAS.find(i => i.id === pendingEvolveIdeaId);
+  if (!idea) return;
+  const msg = buildEnrichMessage(idea);
+  openExportOptions(msg, `evolve-${idea.id}.txt`, "text/plain");
+}
+
+async function submitEvolve() {
+  const raw = document.getElementById("evolve-textarea").value.trim();
+  if (!raw || !pendingEvolveIdeaId) return;
+  let item;
+  try {
+    item = JSON.parse(raw);
+  } catch (e) {
+    await showAlert("Paste exactly the block Claude gave you, without adding or removing anything.", { title: "That's not valid JSON" });
+    return;
+  }
+  const idea = IDEAS.find(i => i.id === pendingEvolveIdeaId);
+  if (!idea) {
+    await showAlert("Could not find the idea to update.", { title: "Error" });
+    closeEvolveModal();
+    return;
+  }
+
+  const simpleFields = ["titulo", "categoria", "estado", "dificultad", "tiempo", "descripcion"];
+  simpleFields.forEach(f => {
+    if (item[f] !== undefined && item[f] !== null) idea[f] = item[f];
+  });
+
+  if (item.notas !== undefined) idea.notas = item.notas;
+
+  if (item.fases) {
+    idea.fases = idea.fases || { preproduccion: [], pruebasTecnicas: [], filmacion: [], produccion3d: [], postproduccion: [], distribucion: [] };
+    Object.keys(item.fases).forEach(faseKey => {
+      if (Array.isArray(item.fases[faseKey]) && item.fases[faseKey].length) {
+        idea.fases[faseKey] = item.fases[faseKey];
+      }
+    });
+  }
+
+  if (Array.isArray(item.cosasAResolver) && item.cosasAResolver.length) {
+    idea.cosasAResolver = idea.cosasAResolver || [];
+    idea.cosasAResolver.push(...item.cosasAResolver);
+  }
+
+  saveIdeas();
+  closeEvolveModal();
+  openDetail(idea.id);
+}
+
+/* ==================================================================
+   ENTREGA DE ARCHIVOS — la Web Share API con archivos (navigator.
+   share con { files }) requiere "contexto seguro" (HTTPS), y este
+   archivo se abre local (file://) o puede abrirse sin HTTPS, así que
+   el navegador puede no ofrecerlo aunque el teléfono lo soporte. En
+   vez de intentarlo en silencio y fallar sin avisar, mostramos
+   siempre un modal propio con tres opciones explícitas: Copy,
+   Share (intenta el share nativo; si el navegador no lo permite
+   en este contexto, avisa y cae a copiar), y Download.
+================================================================== */
+let pendingExport = null; // { content, filename, mimeType }
+
+function openExportOptions(content, filename, mimeType) {
+  pendingExport = { content, filename, mimeType };
+  document.getElementById("export-filename").textContent = filename;
+  document.getElementById("export-overlay").classList.add("open");
+}
+
+function closeExportOptions() {
+  document.getElementById("export-overlay").classList.remove("open");
+  pendingExport = null;
+}
+
+async function exportCopyToClipboard() {
+  if (!pendingExport) return;
+  try {
+    await navigator.clipboard.writeText(pendingExport.content);
+    exportFeedback("Copied to clipboard.");
+  } catch (err) {
+    // Fallback para navegadores/contextos donde clipboard.writeText falla
+    const ta = document.createElement("textarea");
+    ta.value = pendingExport.content;
+    ta.style.position = "fixed";
+    ta.style.opacity = "0";
+    document.body.appendChild(ta);
+    ta.select();
+    try {
+      document.execCommand("copy");
+      exportFeedback("Copied to clipboard.");
+    } catch (err2) {
+      exportFeedback("Could not copy automatically. Try Download instead.", true);
+    }
+    document.body.removeChild(ta);
+  }
+}
+
+async function exportShare() {
+  if (!pendingExport) return;
+  const { content, filename, mimeType } = pendingExport;
+  const blob = new Blob([content], { type: mimeType });
+  const file = new File([blob], filename, { type: mimeType });
+
+  if (navigator.canShare && navigator.canShare({ files: [file] })) {
+    try {
+      await navigator.share({ files: [file], title: filename });
+      closeExportOptions();
+      return;
+    } catch (err) {
+      if (err.name === "AbortError") return; // el usuario cerró el cajón de compartir
+      exportFeedback("Could not open the share menu on this browser. Use Copy or Download.", true);
+      return;
+    }
+  }
+  exportFeedback("This browser doesn't support sharing files this way (needs HTTPS). Use Copy or Download.", true);
+}
+
+function exportDownload() {
+  if (!pendingExport) return;
+  const { content, filename, mimeType } = pendingExport;
+  // En iOS Safari, un blob con mimetype "text/html" suele abrirse
+  // directo en una pestaña nueva en vez de descargarse (Safari lo
+  // interpreta como una página para mostrar, no un archivo para
+  // guardar). Usamos "application/octet-stream" para los .html
+  // específicamente, que fuerza a los navegadores a tratarlo como
+  // descarga de archivo binario genérico en vez de intentar
+  // renderizarlo.
+  const forcedType = mimeType === "text/html" ? "application/octet-stream" : mimeType;
+  const blob = new Blob([content], { type: forcedType });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  closeExportOptions();
+}
+
+function exportFeedback(msg, isWarning) {
+  const el = document.getElementById("export-feedback");
+  el.textContent = msg;
+  el.style.color = isWarning ? "var(--rust)" : "var(--accent)";
+}
+
+function exportBackup() {
+  const dataStr = JSON.stringify(IDEAS, null, 2);
+  const filename = "artdeas-backup-" + new Date().toISOString().slice(0,10) + ".json";
+  openExportOptions(dataStr, filename, "application/json");
+}
+
+/* ==================================================================
+   EXPORTAR HTML COMPLETO — genera una copia de esta misma página,
+   pero con IDEAS_DEFAULT reemplazado por los datos actuales (los que
+   están en localStorage en este momento). El resultado es un archivo
+   .html real, autocontenido, que no depende de localStorage: abrirlo
+   en cualquier PC/navegador muestra estos mismos datos "de fábrica".
+   Es la forma de tener un respaldo que sobrevive a un borrado de
+   caché, un cambio de navegador, o una reinstalación de PC.
+================================================================== */
+// Guardamos el código fuente ORIGINAL del documento (tal como se
+// cargó, antes de que cualquier render de JS lo modifique) apenas
+// arranca la página. Es clave usar esto para exportar, y NO
+// document.documentElement.outerHTML más tarde: ese outerHTML
+// refleja el DOM en vivo (con #main ya lleno de la vista actual
+// renderizada, inputs con su value actual, etc), no el archivo
+// fuente — exportar desde ahí genera un HTML "congelado" en el
+// estado de esa vista puntual, que rompe la interactividad al
+// volver a abrirlo.
+const ORIGINAL_SOURCE_HTML = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
+
+function buildFullHtml() {
+  const newDefaultBlock = "const IDEAS_DEFAULT = " + JSON.stringify(IDEAS, null, 2) + ";";
+
+  // Buscamos desde "const IDEAS_DEFAULT = " hasta el punto y coma que
+  // le sigue (cubre tanto el array vacío en una sola línea como el
+  // array con contenido multi-línea de versiones anteriores). Después
+  // confirmamos que justo a continuación empieza el bloque de
+  // PERSISTENCIA, para no cortar en el lugar equivocado si "const
+  // IDEAS_DEFAULT" apareciera en otro contexto.
+  const startMarker = "const IDEAS_DEFAULT = ";
+  const startIdx = ORIGINAL_SOURCE_HTML.indexOf(startMarker);
+  if (startIdx === -1) return null;
+
+  const searchFrom = startIdx + startMarker.length;
+  const semiIdx = ORIGINAL_SOURCE_HTML.indexOf(";", searchFrom);
+  if (semiIdx === -1) return null;
+
+  const afterSemi = ORIGINAL_SOURCE_HTML.slice(semiIdx + 1);
+  if (!afterSemi.trimStart().startsWith("/* ==") && !afterSemi.startsWith("\n\n/* ==")) {
+    return null; // el formato no es el esperado, mejor no arriesgar a cortar mal
+  }
+
+  const before = ORIGINAL_SOURCE_HTML.slice(0, startIdx);
+  const after = ORIGINAL_SOURCE_HTML.slice(semiIdx + 1);
+  return before + newDefaultBlock + after;
+}
+
+async function exportFullHtml() {
+  const fullHtml = buildFullHtml();
+  if (!fullHtml) {
+    await showAlert('Try "Backup your ideas" instead.', { title: "Could not generate the file" });
+    return;
+  }
+  openExportOptions(fullHtml, "Artdeas.html", "text/html");
+}
+
+function syncSearchInputs() {
+  const m = document.getElementById("search-mobile");
+  const s = document.getElementById("search-sidebar");
+  if (m) m.value = currentSearch;
+  if (s) s.value = currentSearch;
+}
+
+function onSearchInput(e) {
+  currentSearch = e.target.value;
+  // La búsqueda global siempre te lleva a "home" a ver resultados
+  // agrupados por sección, sin importar en qué página estabas.
+  if (currentSearch && view !== "home") {
+    view = "home";
+    viewParam = null;
+  }
+  syncSearchInputs();
+  render();
+}
+
+/* ==================================================================
+   BÚSQUEDA PROFUNDA — busca en título, categoría, descripción,
+   notas, todos los pasos de todas las fases, y cosas a resolver.
+   Devuelve, por idea, la lista de matches con su sección de origen
+   y el fragmento de texto (para mostrar con resaltado).
+================================================================== */
+function stepText(step) {
+  return typeof step === "string" ? step : step.texto + (step.explicacion ? " " + step.explicacion : "");
+}
+
+function deepSearch(query) {
+  const q = query.toLowerCase();
+  const results = [];
+
+  IDEAS.forEach(idea => {
+    const matches = [];
+
+    if (idea.titulo.toLowerCase().includes(q)) {
+      matches.push({ seccion: "Title", texto: idea.titulo });
+    }
+    if (idea.categoria.toLowerCase().includes(q)) {
+      matches.push({ seccion: "Category", texto: idea.categoria });
+    }
+    if (idea.descripcion.toLowerCase().includes(q)) {
+      matches.push({ seccion: "Description", texto: excerptAround(idea.descripcion, q) });
+    }
+    idea.notas.forEach(n => {
+      if (n.toLowerCase().includes(q)) matches.push({ seccion: "Notes", texto: n });
+    });
+
+    Object.keys(FASE_LABELS).forEach(faseKey => {
+      const steps = idea.fases[faseKey] || [];
+      steps.forEach(step => {
+        const txt = stepText(step);
+        if (txt.toLowerCase().includes(q)) {
+          matches.push({ seccion: "Production plan — " + FASE_LABELS[faseKey], texto: txt });
+        }
+      });
+    });
+
+    idea.cosasAResolver.forEach(item => {
+      if (item.texto.toLowerCase().includes(q)) {
+        matches.push({ seccion: "Things to figure out", texto: item.texto });
+      }
+      if (item.busqueda) {
+        item.busqueda.forEach(b => {
+          if (b.toLowerCase().includes(q)) {
+            matches.push({ seccion: "Things to figure out — search hint", texto: b });
+          }
+        });
+      }
+    });
+
+    if (matches.length) results.push({ idea, matches });
+  });
+
+  return results;
+}
+
+function excerptAround(text, q) {
+  const idx = text.toLowerCase().indexOf(q.toLowerCase());
+  if (idx === -1) return text.slice(0, 140);
+  const start = Math.max(0, idx - 60);
+  const end = Math.min(text.length, idx + q.length + 60);
+  return (start > 0 ? "…" : "") + text.slice(start, end) + (end < text.length ? "…" : "");
+}
+
+function highlight(text, q) {
+  if (!q) return escapeHtml(text);
+  const escaped = escapeHtml(text);
+  const escapedQ = escapeHtml(q);
+  const re = new RegExp("(" + escapedQ.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + ")", "gi");
+  return escaped.replace(re, "<mark>$1</mark>");
+}
+
+/* ==================================================================
+   RENDER: SIDEBAR
+================================================================== */
+function renderSidebar() {
+  document.getElementById("count-todas").textContent = IDEAS.length;
+  document.getElementById("nav-todas").classList.toggle("active", view === "home");
+
+  const catWrap = document.getElementById("nav-categorias");
+  catWrap.innerHTML = getCategorias().map(cat => {
+    const count = IDEAS.filter(i => i.categoria === cat).length;
+    const active = view === "categoria" && viewParam === cat;
+    return `<div class="nav-item-cat ${active ? 'active' : ''}" onclick="goCategoria('${escapeAttr(cat)}')">
+      <span>${escapeHtml(cat)}</span>
+      <span class="count">${count}</span>
+    </div>`;
+  }).join("");
+}
+
+/* ==================================================================
+   RENDER: HOME — solo status cards + buscador global
+================================================================== */
+function renderHomeView() {
+  const statusCardsHtml = Object.keys(ESTADOS).map(key => {
+    const cfg = ESTADOS[key];
+    const items = IDEAS.filter(i => i.estado === key);
+    const preview = items.slice(0, 5);
+    return `
+      <div class="status-card" style="border-top:3px solid ${cfg.color}" onclick="goStatus('${key}')">
+        <div class="status-card-top">
+          <span class="status-dot" style="background:${cfg.color}"></span>
+          <span class="status-count" style="color:${cfg.color}">${items.length}</span>
+        </div>
+        <div class="status-name">${cfg.label}</div>
+        <div class="status-preview">
+          ${preview.map(i => `<div>${escapeHtml(i.titulo)}</div>`).join("") || '<div style="opacity:0.5">No ideas yet</div>'}
+        </div>
+      </div>`;
+  }).join("");
+
+  const resultsHtml = currentSearch ? renderSearchResults(currentSearch) : "";
+
+  return `
+    <div class="home-hero">
+      <div class="home-hero-logo-row">
+        <svg class="home-hero-logo" width="44" height="44" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg">
+          <g transform="translate(0,120) scale(0.1,-0.1)" fill="#8b7bd8" stroke="none">
+            <path d="M550 1154 c-14 -9 -37 -28 -51 -41 -22 -20 -30 -22 -53 -13 -110 42 -239 -47 -254 -175 -4 -37 -10 -49 -32 -60 -68 -35 -114 -119 -114 -210 0 -93 31 -146 131 -226 7 -5 13 -24 13 -42 0 -40 39 -125 71 -154 52 -48 137 -57 199 -22 l39 22 30 -26 c18 -15 50 -29 76 -33 60 -8 128 25 170 83 25 35 36 42 65 42 63 2 107 20 143 61 36 39 67 119 67 170 0 29 -27 118 -42 137 -6 7 -5 28 2 54 36 132 -59 289 -173 289 -17 0 -28 12 -45 50 -33 71 -79 103 -156 108 -46 2 -67 -1 -86 -14z m32 -346 c21 -17 77 -106 122 -197 30 -58 35 -76 24 -82 -26 -17 -88 -5 -88 16 0 30 -31 45 -93 45 -72 0 -82 -5 -97 -44 -10 -26 -14 -28 -51 -23 -22 3 -43 7 -45 10 -10 10 113 234 147 268 22 22 58 25 81 7z"/>
+            <path d="M521 691 c-23 -44 -20 -51 24 -51 17 0 34 3 38 6 6 6 -29 84 -38 84 -3 0 -13 -17 -24 -39z"/>
+            <path d="M1024 340 c-30 -12 -54 -49 -54 -83 0 -31 47 -87 74 -87 89 0 124 125 45 165 -32 17 -36 17 -65 5z"/>
+            <path d="M1072 133 c-25 -10 -34 -53 -17 -79 35 -53 119 -11 96 48 -13 33 -44 45 -79 31z"/>
+          </g>
+        </svg>
+        <div class="home-hero-title">Artdeas</div>
+      </div>
+      <div class="home-hero-desc">Your idea backlog — capture what you want to make, break it down into a plan, and track it through to done.</div>
+
+      <div class="search-wrap home-hero-search">
+        <span class="search-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+        </span>
+        <input class="search-input" placeholder="Search by title, category, or description..." value="${escapeAttr(currentSearch)}" oninput="onSearchInput(event)">
+      </div>
+    </div>
+
+    ${currentSearch ? resultsHtml : `
+      <div class="status-grid">${statusCardsHtml}</div>
+      <button class="home-create-btn" onclick="openNewIdeaForm()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+        Create new idea
+      </button>
+    `}
+  `;
+}
+
+function renderSearchResults(query) {
+  const results = deepSearch(query);
+  if (!results.length) {
+    return `<div class="empty-state"><div class="big">No results for "${escapeHtml(query)}"</div>Try a different word.</div>`;
+  }
+  return `
+    <div class="section-label">Resultados para "${escapeHtml(query)}" (${results.length} idea${results.length === 1 ? '' : 's'})</div>
+    <div class="search-results-wrap">
+      ${results.map(r => `
+        <div class="search-result-idea">
+          <div class="search-result-idea-head" onclick="openDetail('${r.idea.id}')">
+            <div class="search-result-idea-title">${escapeHtml(r.idea.titulo)}</div>
+            <span class="tag" style="background:${ESTADOS[r.idea.estado].soft};color:${ESTADOS[r.idea.estado].color}">${ESTADOS[r.idea.estado].label}</span>
+          </div>
+          ${r.matches.map(m => `
+            <div class="search-match">
+              <div class="search-match-section">${escapeHtml(m.seccion)}</div>
+              <div class="search-match-text">${highlight(m.texto, query)}</div>
+            </div>
+          `).join("")}
+        </div>
+      `).join("")}
+    </div>
+  `;
+}
+
+/* ==================================================================
+   RENDER: PÁGINA DE ESTADO/CATEGORÍA — flecha volver + listado
+================================================================== */
+function renderListPageView() {
+  const list = filteredIdeas();
+  const label = view === "categoria" ? viewParam : ESTADOS[viewParam].label;
+  const color = view === "categoria" ? "var(--ink)" : ESTADOS[viewParam].color;
+
+  return `
+    <button class="back-btn" onclick="goHome()">&larr; Back to Home</button>
+
+    <div class="page-header">
+      <div class="page-title" style="color:${color}">${escapeHtml(label)}</div>
+      <div class="page-desc">${list.length} idea${list.length === 1 ? '' : 's'}</div>
+    </div>
+
+    <div class="search-wrap">
+      <span class="search-icon">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.35-4.35"/></svg>
+      </span>
+      <input class="search-input" placeholder="Search within this view..." value="${escapeAttr(currentSearch)}" oninput="onSearchInput(event)">
+    </div>
+
+    <div class="idea-list">${renderIdeaCards(list)}</div>
+  `;
+}
+
+function renderIdeaCards(list) {
+  if (!list.length) return `<div class="empty-state"><div class="big">No ideas here</div>Try another filter or search for something else.</div>`;
+  return list.map(idea => {
+    const cfg = ESTADOS[idea.estado];
+    return `
+    <div class="idea-card" style="border-left:3px solid ${cfg.color}" onclick="openDetail('${idea.id}')">
+      <div class="idea-card-main">
+        <div class="idea-card-title">${escapeHtml(idea.titulo)}</div>
+        <div class="idea-card-meta">
+          <span class="tag" style="background:${cfg.soft};color:${cfg.color}">${cfg.label}</span>
+          <span class="tag tag-cat">${escapeHtml(idea.categoria)}</span>
+        </div>
+      </div>
+      <div class="idea-card-stats">
+        <div class="stat-block">
+          <div class="stat-num">${idea.dificultad ?? '—'}</div>
+          <div class="stat-lbl">Dificult.</div>
+        </div>
+        <div class="stat-block">
+          <div class="stat-num">${idea.tiempo ?? '—'}</div>
+          <div class="stat-lbl">Time</div>
+        </div>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+/* ==================================================================
+   RENDER: DETALLE
+================================================================== */
+function renderDetailView(idea) {
+  const cfg = ESTADOS[idea.estado];
+
+  const descParagraphs = idea.descripcion.split("\n").map(p => `<p>${escapeHtml(p)}</p>`).join("");
+
+  const notasHtml = idea.notas.length ? `
+    <div class="detail-block">
+      <div class="block-title c-notes"><span class="dot" style="background:var(--amber)"></span>Notes</div>
+      <ul class="notes-list">${idea.notas.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul>
+    </div>` : "";
+
+  const faseOrden = ["preproduccion","pruebasTecnicas","filmacion","produccion3d","postproduccion","distribucion"];
+  const fasesConContenido = faseOrden.filter(f => idea.fases[f] && idea.fases[f].length);
+
+  const fasesHtml = fasesConContenido.length ? `
+    <div class="detail-block">
+      <div class="block-title c-plan"><span class="dot" style="background:var(--accent)"></span>Production plan</div>
+      ${fasesConContenido.map((f, idx) => `
+        <div class="phase">
+          <div class="phase-head">
+            <span class="phase-num">${idx+1}</span>
+            <span class="phase-name" style="color:var(--accent)">${FASE_LABELS[f]}</span>
+          </div>
+          <ul class="phase-steps">
+            ${idea.fases[f].map(step => renderStep(step)).join("")}
+          </ul>
+        </div>
+      `).join("")}
+    </div>` : "";
+
+  const resolverHtml = `
+    <div class="detail-block">
+      <div class="block-title c-resolve"><span class="dot" style="background:var(--rust)"></span>Things to figure out</div>
+      <ul class="resolve-list">
+        ${idea.cosasAResolver.map((item, idx) => `
+          <li class="resolve-item ${item.resuelto ? 'done' : ''}">
+            <span class="resolve-check" onclick="toggleResolve('${idea.id}', ${idx})" style="cursor:pointer">${item.resuelto ? '✓' : ''}</span>
+            <div class="resolve-text-wrap" onclick="toggleResolve('${idea.id}', ${idx})" style="cursor:pointer">
+              <div class="resolve-text">${escapeHtml(item.texto)}</div>
+              ${item.busqueda ? `<div class="resolve-search">search: ${item.busqueda.map(b => `<span>${escapeHtml(b)}</span>`).join(" ")}</div>` : ""}
+            </div>
+            <button class="resolve-delete-btn" onclick="deleteResolverItem('${idea.id}', ${idx})" title="Eliminar">&times;</button>
+          </li>
+        `).join("")}
+      </ul>
+      <button class="resolve-add-btn" onclick="addResolverItem('${idea.id}')">+ Add thing to figure out</button>
+    </div>`;
+
+  return `
+    <div class="detail-top-row">
+      <button class="back-btn" onclick="goHome()">&larr; Back to Home</button>
+      <button class="complete-info-btn enrich-btn" onclick="openEvolveModal('${idea.id}')">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Evolve idea
+      </button>
+    </div>
+
+    <div class="detail-header">
+      <div class="detail-title">${escapeHtml(idea.titulo)}</div>
+      <div class="detail-badges">
+        <span class="badge badge-status" style="background:${cfg.soft};color:${cfg.color}">${cfg.label}</span>
+        <span class="badge badge-cat" style="background:var(--slate-soft);color:var(--slate)">${escapeHtml(idea.categoria)}</span>
+        <span class="badge badge-metric" style="border-color:var(--rust);color:var(--rust)">Difficulty ${idea.dificultad ?? '—'}/10</span>
+        <span class="badge badge-metric" style="border-color:var(--accent);color:var(--accent)">Time ${idea.tiempo ?? '—'}/10</span>
+      </div>
+    </div>
+
+    ${fasesHtml}
+
+    <div class="detail-block">
+      <div class="block-title c-desc"><span class="dot" style="background:var(--ink)"></span>Description</div>
+      <div class="desc-text">${descParagraphs}</div>
+    </div>
+
+    ${notasHtml}
+    ${resolverHtml}
+
+    <div style="margin-top:8px">
+      <button class="idea-delete-btn" onclick="deleteIdea('${idea.id}')">Delete this idea</button>
+    </div>
+  `;
+}
+
+// Un paso de fase puede ser un string, o un objeto
+// { texto: "...", explicacion: "..." } cuando conviene aclarar un
+// término técnico para alguien que no lo conoce todavía.
+function renderStep(step) {
+  if (typeof step === "string") {
+    return `<li>${escapeHtml(step)}</li>`;
+  }
+  return `<li>${escapeHtml(step.texto)}${step.explicacion ? `<div class="phase-desc">${escapeHtml(step.explicacion)}</div>` : ""}</li>`;
+}
+
+/* ==================================================================
+   RENDER PRINCIPAL
+================================================================== */
+function render() {
+  renderSidebar();
+  const main = document.getElementById("main");
+  if (view === "detalle") {
+    const idea = IDEAS.find(i => i.id === viewParam);
+    main.innerHTML = idea ? renderDetailView(idea) : renderHomeView();
+  } else if (view === "status" || view === "categoria") {
+    main.innerHTML = renderListPageView();
+  } else {
+    main.innerHTML = renderHomeView();
+  }
+  syncSearchInputs();
+}
+
+function escapeHtml(str) {
+  const div = document.createElement("div");
+  div.textContent = str;
+  return div.innerHTML;
+}
+function escapeAttr(str) {
+  return escapeHtml(str).replace(/'/g, "&#39;");
+}
+
+render();
+
+// Intento silencioso de sincronizar con Drive al cargar, solo si ya
+// hay un token guardado (no fuerza el prompt de login la primera vez;
+// para eso Tomas usa el botón "Connect Google Drive").
+if (getSavedToken()) {
+  initDriveSync();
+}
+</script>
+</body>
+</html>
