@@ -415,6 +415,11 @@ que Tomas lo pida explícitamente).
     font-weight: 400;
     letter-spacing: 0.01em;
     line-height: 1.3;
+    color: var(--accent);
+  }
+
+  [data-theme="dark"] .brand {
+    color: var(--ink);
   }
 
   .brand-row {
@@ -673,6 +678,11 @@ que Tomas lo pida explícitamente).
     font-size: 2.6rem;
     font-weight: 400;
     letter-spacing: 0.01em;
+    color: var(--accent);
+  }
+
+  [data-theme="dark"] .home-hero-title {
+    color: var(--ink);
   }
 
   .home-hero-desc {
@@ -1241,6 +1251,11 @@ que Tomas lo pida explícitamente).
       font-size: 1.05rem;
       font-weight: 400;
       cursor: pointer;
+      color: var(--accent);
+    }
+
+    [data-theme="dark"] .mobile-brand {
+      color: var(--ink);
     }
 
     .mobile-header-actions {
@@ -3128,15 +3143,60 @@ function syncSearchInputs() {
 }
 
 function onSearchInput(e) {
-  currentSearch = e.target.value;
+  const activeElement = e.target;
+  const cursorPos = activeElement.selectionStart;
+  currentSearch = activeElement.value;
+
+  const wasHome = view === "home";
   // La búsqueda global siempre te lleva a "home" a ver resultados
   // agrupados por sección, sin importar en qué página estabas.
   if (currentSearch && view !== "home") {
     view = "home";
     viewParam = null;
   }
+
+  const viewChanged = !wasHome && view === "home";
+
+  if (viewChanged) {
+    // Cambió de página de verdad (ej: estaba en Status y ahora va a
+    // Home) — ahí sí hace falta reconstruir todo, no hay forma de
+    // evitarlo porque cambia la estructura completa alrededor.
+    syncSearchInputs();
+    render();
+    return;
+  }
+
+  // Sin cambio de vista: actualizamos SOLO el contenedor de
+  // resultados, dejando el <input> donde está. Reemplazar el propio
+  // input mientras el usuario está escribiendo en él le hace perder
+  // el foco y el cursor, y se siente como que el buscador "se traba".
   syncSearchInputs();
-  render();
+  if (view === "home") {
+    const area = document.getElementById("home-results-area");
+    if (area) {
+      const statusCardsHtml = renderStatusCardsOnly();
+      area.innerHTML = currentSearch ? renderSearchResults(currentSearch) : `
+        <div class="status-grid">${statusCardsHtml}</div>
+        <button class="home-create-btn" onclick="openNewIdeaForm()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+          Create new idea
+        </button>
+      `;
+    }
+  } else if (view === "status" || view === "categoria") {
+    const area = document.getElementById("list-page-results-area");
+    if (area) {
+      const list = filteredIdeas();
+      area.innerHTML = `<div class="idea-list">${renderIdeaCards(list)}</div>`;
+    }
+  }
+
+  // Restaurar posición del cursor: como no tocamos el propio input
+  // esta vez, no hace falta, pero si algún navegador lo requiere por
+  // el value ya seteado, esto es un resguardo inofensivo.
+  if (activeElement.value === currentSearch && document.activeElement === activeElement) {
+    try { activeElement.setSelectionRange(cursorPos, cursorPos); } catch(e) {}
+  }
 }
 
 /* ==================================================================
@@ -3235,8 +3295,8 @@ function renderSidebar() {
 /* ==================================================================
    RENDER: HOME — solo status cards + buscador global
 ================================================================== */
-function renderHomeView() {
-  const statusCardsHtml = Object.keys(ESTADOS).map(key => {
+function renderStatusCardsOnly() {
+  return Object.keys(ESTADOS).map(key => {
     const cfg = ESTADOS[key];
     const items = IDEAS.filter(i => i.estado === key);
     const preview = items.slice(0, 5);
@@ -3252,6 +3312,10 @@ function renderHomeView() {
         </div>
       </div>`;
   }).join("");
+}
+
+function renderHomeView() {
+  const statusCardsHtml = renderStatusCardsOnly();
 
   const resultsHtml = currentSearch ? renderSearchResults(currentSearch) : "";
 
@@ -3276,13 +3340,13 @@ function renderHomeView() {
       </div>
     </div>
 
-    ${currentSearch ? resultsHtml : `
+    <div id="home-results-area">${currentSearch ? resultsHtml : `
       <div class="status-grid">${statusCardsHtml}</div>
       <button class="home-create-btn" onclick="openNewIdeaForm()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Create new idea
       </button>
-    `}
+    `}</div>
   `;
 }
 
@@ -3335,7 +3399,7 @@ function renderListPageView() {
       <input class="search-input" placeholder="Search within this view..." value="${escapeAttr(currentSearch)}" oninput="onSearchInput(event)">
     </div>
 
-    <div class="idea-list">${renderIdeaCards(list)}</div>
+    <div id="list-page-results-area"><div class="idea-list">${renderIdeaCards(list)}</div></div>
   `;
 }
 
