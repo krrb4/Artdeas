@@ -1884,7 +1884,7 @@ que Tomas lo pida explícitamente).
     <button class="mobile-menu-btn" onclick="toggleMobileMenu()" aria-label="Menu">
       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="4" y1="6" x2="20" y2="6"/><line x1="4" y1="12" x2="20" y2="12"/><line x1="4" y1="18" x2="20" y2="18"/></svg>
     </button>
-    <div class="mobile-brand" onclick="goHome()">
+    <div class="mobile-brand" id="mobile-brand" onclick="goHome()">
       <svg width="41" height="41" viewBox="0 0 120 120" xmlns="http://www.w3.org/2000/svg" style="vertical-align:-11px;margin-right:6px">
         <path fill-rule="evenodd" fill="#8b7bd8" d="m24.48 33.41c0 0-7.21-28.4 24.29-17.49 1.64-1.45 15.43-21 27.99 6.79 17.62 1.35 30.65 5.17 16.47 29.23 11.34 21.72 6.98 30.44-16.88 29.64-0.21 0.41-8.23 26.35-25.73 5.35 0 0-32.53 21.41-26.56-15.85 0 0-32.31-17.7 0.42-37.67z"/>
         <path fill-rule="evenodd" fill="#8b7bd8" d="m102.94 96.98c-3.95 0-7.14-3.19-7.14-7.14 0-3.95 3.19-7.14 7.14-7.14 3.95 0 7.14 3.19 7.14 7.14 0 3.95-3.19 7.14-7.14 7.14z"/>
@@ -3629,6 +3629,17 @@ function render() {
     main.innerHTML = renderHomeView();
   }
   syncSearchInputs();
+  updateMobileHeaderBrand();
+}
+
+// En la Home, el hero ya muestra un logo grande más abajo, así que
+// el logo del header de arriba (mobile) se oculta ahí para no
+// duplicarlo — en cualquier otra vista (detalle, listas por estado o
+// categoría) el logo del header se ve normal.
+function updateMobileHeaderBrand() {
+  const brand = document.getElementById("mobile-brand");
+  if (!brand) return;
+  brand.style.display = (view === "home") ? "none" : "";
 }
 
 function escapeHtml(str) {
