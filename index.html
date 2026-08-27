@@ -2024,6 +2024,39 @@ que Tomas lo pida explícitamente).
   </div>
 </div>
 
+<!-- MODAL: Edit idea (título/categoría/estado/descripción básicos) -->
+<div class="modal-overlay" id="edit-idea-overlay">
+  <div class="modal-box">
+    <div class="modal-head">
+      <div class="modal-title">Edit idea</div>
+      <button class="modal-close" onclick="closeEditIdeaModal()">&times;</button>
+    </div>
+    <form id="edit-idea-form" onsubmit="submitEditIdea(event)">
+      <label class="form-label">Title</label>
+      <input class="form-input" id="eid-titulo" required>
+
+      <label class="form-label">Category</label>
+      <input class="form-input" id="eid-categoria" required>
+
+      <label class="form-label">Status</label>
+      <select class="form-input" id="eid-estado">
+        <option value="idea">Idea</option>
+        <option value="en-curso">In progress</option>
+        <option value="pausada">Paused</option>
+        <option value="descartada">Discarded</option>
+        <option value="completada">Completed</option>
+      </select>
+
+      <label class="form-label">Description</label>
+      <textarea class="form-input form-textarea" id="eid-descripcion"></textarea>
+
+      <div class="form-hint">Production plan and things to figure out are edited from the detail view, or with "Evolve idea".</div>
+
+      <button type="submit" class="form-submit">Save changes</button>
+    </form>
+  </div>
+</div>
+
 <!-- MODAL: Evolve idea (unifica el viejo "Enrich idea" + "Complete info") -->
 <div class="modal-overlay" id="evolve-overlay">
   <div class="modal-box" style="max-width:480px">
@@ -2892,6 +2925,52 @@ function submitNewIdea(e) {
 }
 
 /* ==================================================================
+   EDIT IDEA — edita los campos básicos (título, categoría, estado,
+   descripción) de una idea ya existente, sin tocar su plan de
+   producción ni sus cosas a resolver. Complementa a "Evolve idea",
+   que sirve para lo más grande (plan de producción, etc) con ayuda
+   de Claude.
+================================================================== */
+let pendingEditIdeaId = null;
+
+function openEditIdeaModal(ideaId) {
+  const idea = IDEAS.find(i => i.id === ideaId);
+  if (!idea) return;
+  pendingEditIdeaId = ideaId;
+  document.getElementById("eid-titulo").value = idea.titulo;
+  document.getElementById("eid-categoria").value = idea.categoria;
+  document.getElementById("eid-estado").value = idea.estado;
+  document.getElementById("eid-descripcion").value = idea.descripcion;
+  document.getElementById("edit-idea-overlay").classList.add("open");
+}
+
+function closeEditIdeaModal() {
+  document.getElementById("edit-idea-overlay").classList.remove("open");
+  pendingEditIdeaId = null;
+}
+
+function submitEditIdea(e) {
+  e.preventDefault();
+  const idea = IDEAS.find(i => i.id === pendingEditIdeaId);
+  if (!idea) return;
+
+  const titulo = document.getElementById("eid-titulo").value.trim();
+  const categoria = document.getElementById("eid-categoria").value.trim();
+  const descripcion = document.getElementById("eid-descripcion").value.trim();
+  const estado = document.getElementById("eid-estado").value;
+  if (!titulo || !categoria) return;
+
+  idea.titulo = titulo;
+  idea.categoria = categoria;
+  idea.descripcion = descripcion || "No description yet.";
+  idea.estado = estado;
+
+  saveIdeas();
+  closeEditIdeaModal();
+  openDetail(idea.id);
+}
+
+/* ==================================================================
    IMPORTAR / EXPORTAR — para pegar ideas armadas en el chat con
    Claude, o hacer backup completo del archivo.
 ================================================================== */
@@ -2995,7 +3074,25 @@ function buildEnrichMessage(idea) {
     msg += "\n";
   }
 
-  msg += `Help me expand and flesh out this idea: fill in whatever's missing from the production plan, suggest more things to figure out if it makes sense, and when we're done, update the file directly in my Google Drive (you already have access).`;
+  msg += `Help me expand and flesh out this idea: fill in whatever's missing from the production plan, suggest more things to figure out if it makes sense.\n\n`;
+  msg += `If you have direct access to my Google Drive in this chat, update the "artdeas-data.json" file there directly for this idea and let me know when it's done — I won't need to do anything else.\n\n`;
+  msg += `If you don't have Drive access, once we're done give me the result as a single JSON object (not inside a code block explanation, just the raw JSON) with this exact shape, so I can paste it into the "Evolve idea" box on the page:\n`;
+  msg += `{\n`;
+  msg += `  "descripcion": "...",\n`;
+  msg += `  "notas": ["...", "..."],\n`;
+  msg += `  "fases": {\n`;
+  msg += `    "preproduccion": ["...", { "texto": "...", "explicacion": "..." }],\n`;
+  msg += `    "pruebasTecnicas": [],\n`;
+  msg += `    "filmacion": [],\n`;
+  msg += `    "produccion3d": [],\n`;
+  msg += `    "postproduccion": [],\n`;
+  msg += `    "distribucion": []\n`;
+  msg += `  },\n`;
+  msg += `  "cosasAResolver": [\n`;
+  msg += `    { "texto": "...", "resuelto": false, "busqueda": ["...", "..."] }\n`;
+  msg += `  ]\n`;
+  msg += `}\n`;
+  msg += `Only include fields that actually changed — leave out anything that should stay as it is. For "fases", only include the phases that have new content; phases left out (or as empty arrays) won't overwrite what's already there. For "cosasAResolver", new items get added to the existing list, they don't replace it.`;
 
   return msg;
 }
@@ -3580,9 +3677,14 @@ function renderDetailView(idea) {
   return `
     <div class="detail-top-row">
       <button class="back-btn" onclick="goHome()">&larr; Back to Home</button>
-      <button class="complete-info-btn enrich-btn" onclick="openEvolveModal('${idea.id}')">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Evolve idea
-      </button>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="complete-info-btn" onclick="openEditIdeaModal('${idea.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Edit
+        </button>
+        <button class="complete-info-btn enrich-btn" onclick="openEvolveModal('${idea.id}')">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Evolve idea
+        </button>
+      </div>
     </div>
 
     <div class="detail-header">
