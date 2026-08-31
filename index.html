@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
@@ -18,111 +18,109 @@
 
 <!--
 ====================================================================
-INSTRUCCIONES PARA CLAUDE — LEER ANTES DE MODIFICAR ESTE ARCHIVO
+INSTRUCTIONS FOR CLAUDE — READ BEFORE MODIFYING THIS FILE
 ====================================================================
 
-Este archivo es el backlog vivo de ideas de proyectos 3D de Tomas
-(cortos, reels, videojuegos, etc). Los datos están en el array
-`IDEAS` dentro del <script> al final del archivo. Editalo ahí.
+This file is Tomas's living backlog of 3D project ideas (shorts,
+reels, video games, etc). The data lives in the `IDEAS` array inside
+the <script> at the end of the file. Edit it there.
 
-ESTRUCTURA DE CADA IDEA (objeto JS):
+STRUCTURE OF EACH IDEA (JS object):
 {
-  id: string único (slug, ej: "espejo-mask-off"),
+  id: unique string (slug, e.g. "espejo-mask-off"),
   titulo: string,
-  categoria: string (ej: "Corto / Reel Instagram", "Videojuego"),
-  estado: uno de "idea" | "en-curso" | "pausada" | "descartada" | "completada",
-  dificultad: número 1-10 o null si no está definido,
-  tiempo: número 1-10 o null si no está definido,
-  descripcion: string (puede tener saltos de línea con \n, se renderiza como párrafos),
-  notas: array de strings,
+  categoria: string (e.g. "Corto / Reel Instagram", "Videojuego"),
+  estado: one of "idea" | "en-curso" | "pausada" | "descartada" | "completada",
+  dificultad: number 1-10 or null if not defined,
+  tiempo: number 1-10 or null if not defined,
+  descripcion: string (can have line breaks with \n, rendered as paragraphs),
+  notas: array of strings,
   fases: {
-    preproduccion: array de pasos,
-    pruebasTecnicas: array de pasos,
-    filmacion: array de pasos,
-    produccion3d: array de pasos,
-    postproduccion: array de pasos,
-    distribucion: array de pasos
+    preproduccion: array of steps,
+    pruebasTecnicas: array of steps,
+    filmacion: array of steps,
+    produccion3d: array of steps,
+    postproduccion: array of steps,
+    distribucion: array of steps
   },
-  cosasAResolver: array de { texto: string, resuelto: boolean, busqueda: array de strings o null }
+  cosasAResolver: array of { texto: string, resuelto: boolean, busqueda: array of strings or null }
 }
 
-Cada "paso" dentro de una fase puede ser:
-  - un string simple: "Modelar/texturizar cada asset."
-  - o un objeto con explicación adicional cuando el paso usa un
-    término técnico que Tomas puede no conocer:
-    { texto: "Hacer storyboard del fragmento.",
-      explicacion: "El storyboard es una serie de dibujos simples
-      que muestran cada toma en orden, como un comic. Sirve para
-      planear cámara y composición antes de filmar o modelar nada." }
-  Usar el objeto con explicación cuando el paso menciona una técnica,
-  herramienta o concepto de producción audiovisual/3D que alguien sin
-  experiencia en dirección/VFX no necesariamente conoce (storyboard,
-  compositing, timestamps, rigging, retopología, etc). No hace falta
-  explicar términos que Tomas ya maneja como 3D artist (blocking,
-  UV, shading, high poly, etc).
+Each "step" inside a phase can be:
+  - a plain string: "Model/texture each asset."
+  - or an object with an extra explanation when the step uses a
+    technical term Tomas might not know:
+    { texto: "Storyboard the fragment.",
+      explicacion: "A storyboard is a series of simple drawings
+      showing each shot in order, like a comic. It's used to plan
+      camera and composition before filming or modeling anything." }
+  Use the object-with-explanation form when the step mentions a
+  filmmaking/VFX technique or concept someone without directing/VFX
+  experience might not know (storyboard, compositing, timestamps,
+  rigging, retopology, etc). No need to explain terms Tomas already
+  knows as a 3D artist (blocking, UV, shading, high poly, etc).
 
-No todas las fases aplican a todas las ideas (ej: un videojuego no
-tiene "filmación"). Si una fase no aplica, dejar el array vacío []
-y no se va a renderizar esa sección.
+Not every phase applies to every idea (e.g. a video game has no
+"filming"). If a phase doesn't apply, leave it as an empty array
+[] and that section just won't render.
 
-IMPORTANTE: no usar emojis en ningún texto (títulos, pasos, notas,
-etc). El diseño usa colores para diferenciar secciones, no íconos.
-
-====================================================================
-CÓMO FUNCIONA LA PERSISTENCIA (dos modos: anónimo y con Google Drive)
-====================================================================
-Esta app está pensada para eventualmente ser usada por otras
-personas además de Tomas, no solo por él, así que tiene dos modos:
-
-MODO ANÓNIMO (sin login): al abrir la página sin conectar Google
-Drive, arranca con IDEAS_DEFAULT vacío ([]) — nadie ve datos de
-Tomas ni de nadie más. El usuario puede crear/editar ideas
-libremente, y todo se guarda en localStorage de ESE navegador. Es
-funcional de punta a punta sin necesidad de cuenta.
-
-MODO CONECTADO (con Google Drive): al usar el botón "Conectar
-Google Drive" en la sidebar, la página autentica con OAuth y busca
-(o crea, si es la primera vez de esa cuenta) un archivo
-"artdeas-data.json" en el Drive de ESA cuenta puntual. Ese archivo
-pasa a ser la fuente de verdad mientras dure la sesión — reemplaza
-lo que hubiera en pantalla en modo anónimo. Si había ideas creadas
-sin login, se le avisa al usuario con un modal de confirmación
-propio (showConfirm(), no el confirm() nativo del navegador) antes
-de conectar, para que no las pierda sin darse cuenta (puede cancelar
-y exportarlas primero a .json como respaldo).
-
-Cada cuenta de Google ve SOLO sus propias ideas (su propio archivo
-en su propio Drive) — no hay mezcla de datos entre usuarios.
-
-IMPORTANTE PARA CLAUDE: sobre el Drive de Tomas puntualmente, como
-Claude tiene acceso vía conector en el chat, cuando Tomas pida
-"expandí la idea X" Claude puede leer y escribir DIRECTAMENTE el
-archivo "artdeas-data.json" en el Drive de Tomas (buscarlo con
-search_files, leerlo con read_file_content, y actualizarlo
-re-subiendo el JSON completo) — sin necesidad de que Tomas suba ni
-baje nada desde la página. IDEAS_DEFAULT dentro de este HTML debe
-permanecer vacío ([]) — no restaurar ahí las ideas de Tomas ni de
-ningún usuario particular, eso rompería el modo anónimo para
-cualquier otra persona que abra la página sin loguearse.
-
-Si por algún motivo Drive no está disponible y hace falta trabajar
-sobre el HTML directamente, seguís pudiendo usar "Download archivo
-actualizado" o "Export solo datos (.json)" como respaldo manual,
-igual que antes.
+IMPORTANT: don't use emojis anywhere in the text (titles, steps,
+notes, etc). The design uses color to differentiate sections, not
+icons.
 
 ====================================================================
-FLUJO PARA "CREAR IDEA NUEVA" — con importación a la página
+HOW PERSISTENCE WORKS (two modes: anonymous and Google Drive)
 ====================================================================
-Cuando Tomas complete el proceso de crear una idea nueva en el chat
-(el paso a paso de preguntas descrito arriba), ADEMÁS de actualizar
-IDEAS_DEFAULT en este archivo si estás regenerándolo, generá un
-bloque de JSON con el objeto de la idea completa, en un code block,
-para que Tomas lo copie y lo pegue en el modal "New idea" → pestaña
-"Import from Claude" de la página (sin tener que reemplazar todo el
-archivo).
+This app is meant to eventually be used by people other than Tomas
+too, not just him, so it has two modes:
 
-El JSON debe tener exactamente esta forma (un objeto, no un array,
-salvo que sean varias ideas juntas):
+ANONYMOUS MODE (no login): opening the page without connecting
+Google Drive starts with an empty IDEAS_DEFAULT ([]) — nobody sees
+Tomas's data or anyone else's. The user can freely create/edit
+ideas, and everything is saved to that browser's localStorage. It's
+fully functional end-to-end with no account needed.
+
+CONNECTED MODE (with Google Drive): using the "Connect Google
+Drive" button in the sidebar, the page authenticates via OAuth and
+looks for (or creates, the first time for that account) an
+"artdeas-data.json" file in THAT account's Drive. That file becomes
+the source of truth for the session — it replaces whatever was
+showing in anonymous mode. If there were ideas created without
+logging in, the user gets a confirmation modal (showConfirm(), not
+the browser's native confirm()) before connecting, so they don't
+lose them without noticing (they can cancel and export to .json as
+a backup first).
+
+Each Google account only sees its own ideas (its own file in its
+own Drive) — no data mixing between users.
+
+IMPORTANT FOR CLAUDE: regarding Tomas's own Drive specifically,
+since Claude has access via a connector in the chat, when Tomas
+asks to "expand idea X" Claude can read and write the
+"artdeas-data.json" file in Tomas's Drive DIRECTLY (find it with
+search_files, read it with read_file_content, and update it by
+re-uploading the full JSON) — without Tomas needing to upload or
+download anything from the page. IDEAS_DEFAULT inside this HTML
+must stay empty ([]) — don't restore Tomas's or any particular
+user's ideas there, that would break anonymous mode for anyone else
+who opens the page without logging in.
+
+If Drive isn't available for some reason and you need to work on
+the HTML directly, you can still use "Download updated file" or
+"Export just the data (.json)" as a manual backup, same as before.
+
+====================================================================
+FLOW FOR "CREATE NEW IDEA" — with import into the page
+====================================================================
+When Tomas finishes the process of creating a new idea in chat (the
+step-by-step questions described above), IN ADDITION to updating
+IDEAS_DEFAULT in this file if you're regenerating it, generate a
+JSON block with the complete idea object, in a code block, so Tomas
+can copy it and paste it into the "New idea" modal → "Import from
+Claude" tab on the page (without having to replace the whole file).
+
+The JSON must have exactly this shape (a single object, not an
+array, unless it's several ideas at once):
 
 {
   "titulo": "...",
@@ -145,54 +143,54 @@ salvo que sean varias ideas juntas):
   ]
 }
 
-No hace falta incluir "id" — la página lo genera sola a partir del
-título. Mismo criterio de campos que en la sección de arriba (fases
-que no aplican quedan como array vacío, pasos pueden ser string u
-objeto con explicación, etc).
+No need to include "id" — the page generates it on its own from the
+title. Same field rules as the section above (phases that don't
+apply stay as empty arrays, steps can be a string or an object with
+an explanation, etc).
 
 ====================================================================
-FLUJO "EVOLVE IDEA" — punto de entrada único para que Tomas pida
-ayuda a Claude sobre una idea puntual desde la propia página
-(unifica lo que antes eran dos botones separados: "Enrich idea" y
+"EVOLVE IDEA" FLOW — single entry point for Tomas to ask Claude
+for help on a specific idea from the page itself
+(unifies what used to be two separate buttons: "Enrich idea" and
 "Complete info")
 ====================================================================
-La página tiene un botón "Evolve idea" (color ámbar) en el header
-del detalle de cada idea. Al usarlo se abre un modal con dos pasos:
+The page has an "Evolve idea" button (amber colored) in the header
+of each idea's detail view. Using it opens a modal with two steps:
 
-PASO 1 (arriba del modal): "Copy prompt for Claude" — arma
-automáticamente un mensaje de texto con toda la info actual de esa
-idea (título, descripción, notas, plan de producción, cosas a
-resolver) y una consigna para Claude, y se lo ofrece a Tomas para
-copiar (vía el mismo modal de Copy/Share/Download del resto de la
-página).
+STEP 1 (top of the modal): "Copy prompt for Claude" — automatically
+builds a text message with all the current info for that idea
+(title, description, notes, production plan, things to figure out)
+plus instructions for the AI, and offers it to Tomas to copy (via
+the same Copy/Share/Download modal used elsewhere on the page).
 
-PASO 2 (abajo del modal): un textarea donde Tomas pega la respuesta
-final de Claude (un bloque JSON) y un botón "Update idea" que
-ACTUALIZA esa idea puntual en el archivo (mergeando campo por campo,
-sin crear una idea nueva).
+STEP 2 (bottom of the modal): a textarea where Tomas pastes the
+final reply (a JSON block) and an "Update idea" button that UPDATES
+that specific idea in the file (merging field by field, without
+creating a new idea).
 
-Tomas copia el mensaje del Paso 1 y lo pega en un chat con Claude
-(este mismo u otro nuevo). Cuando Claude reciba un mensaje con este
-formato, debe:
-1. Seguir el flujo normal de preguntas una por una (ver REGLA DE ORO
-   más abajo), usando la info ya incluida en el mensaje como punto
-   de partida — no volver a preguntar cosas que ya están ahí.
-2. Al terminar, tiene DOS formas de dejar el resultado, según el
-   contexto:
-   a) Si Claude ya tiene acceso a Google Drive vía conector en el
-      chat (que es el caso de Tomas), lo más directo es actualizar
-      DIRECTAMENTE el archivo "artdeas-data.json" en su Drive
-      (buscarlo con search_files, leerlo, modificar el objeto de esa
-      idea puntual, volver a subirlo completo) — así Tomas no
-      necesita hacer nada más, el cambio ya va a estar la próxima
-      vez que abra la página.
-   b) Si no hay acceso a Drive (otro usuario, u otro chat sin el
-      conector), Claude arma el JSON de la idea actualizada y se lo
-      da a Tomas para que lo pegue en el Paso 2 del modal "Evolve
-      idea" (el textarea de abajo), que lo aplica localmente.
+Tomas copies the Step 1 message and pastes it into a chat with
+Claude (this one or a new one). When Claude receives a message in
+this format, it should:
+1. Follow the normal one-question-at-a-time flow (see GOLDEN RULE
+   below), using the info already included in the message as a
+   starting point — don't re-ask things that are already there.
+2. Once done, there are TWO ways to hand off the result, depending
+   on context:
+   a) If Claude already has access to Google Drive via a connector
+      in the chat (Tomas's case), the most direct thing is to
+      update the "artdeas-data.json" file in his Drive DIRECTLY
+      (find it with search_files, read it, modify that specific
+      idea's object, re-upload it in full) — so Tomas doesn't need
+      to do anything else, the change will already be there next
+      time he opens the page.
+   b) If there's no Drive access (another user, or another chat
+      without the connector), Claude builds the JSON for the
+      updated idea and gives it to Tomas to paste into Step 2 of
+      the "Evolve idea" modal (the textarea below), which applies
+      it locally.
 
-El JSON para el Paso 2 (o para que Claude lo aplique directo en
-Drive con el mismo criterio) tiene esta forma:
+The JSON for Step 2 (or for Claude to apply directly to Drive using
+the same rules) has this shape:
 
 {
   "descripcion": "...",
@@ -210,91 +208,88 @@ Drive con el mismo criterio) tiene esta forma:
   ]
 }
 
-Reglas del merge (importante para armar bien el JSON):
-  - Solo incluir los campos que realmente querés actualizar. Un
-    campo ausente en el JSON deja el valor actual de la idea sin
-    tocar.
-  - "fases": se reemplaza fase por fase. Si el JSON trae contenido
-    para "preproduccion", esa fase se reemplaza completa; las fases
-    que el JSON deja como array vacío [] NO se tocan (se conserva lo
-    que ya había ahí).
-  - "cosasAResolver": los ítems del JSON se AGREGAN a la lista
-    existente, no la reemplazan — así no se pierden ítems que Tomas
-    ya tildó como resueltos.
-  - "titulo", "categoria", "estado", "dificultad", "tiempo" también
-    se pueden actualizar con este mismo JSON si hace falta corregir
-    algo, incluyendo el campo correspondiente.
+Merge rules (important for building the JSON correctly):
+  - Only include fields you actually want to update. A field left
+    out of the JSON leaves the idea's current value untouched.
+  - "fases": replaced phase by phase. If the JSON includes content
+    for "preproduccion", that whole phase gets replaced; phases left
+    as an empty array [] are NOT touched (whatever was already there
+    is kept).
+  - "cosasAResolver": items in the JSON get ADDED to the existing
+    list, they don't replace it — so items Tomas already checked off
+    don't get lost.
+  - "titulo", "categoria", "estado", "dificultad", "tiempo" can also
+    be updated with this same JSON if something needs correcting, by
+    including that field.
 
-Para "modificar idea" (cambiar un campo puntual) o "tachar cosa
-resuelta": lo más simple sigue siendo que Tomas lo haga directo en
-la página (tildar un checkbox, usar "+ Add thing to figure out",
-editar campos), salvo que sea un cambio grande que amerite pasar por
-"Evolve idea". El chat con Claude sirve sobre todo para definir
-el plan de producción completo de una idea (nueva o ya creada) o
-para reescribir el archivo entero si hace falta una reestructuración
-grande.
+For "modify idea" (change a specific field) or "check off a
+resolved item": the simplest approach is still for Tomas to do it
+directly on the page (check a box, use "+ Add thing to figure out",
+edit fields), unless it's a big change that warrants going through
+"Evolve idea". The chat with Claude is mainly for defining a
+complete production plan for an idea (new or existing) or for
+rewriting the whole file when a big restructuring is needed.
 
-COMANDOS QUE TOMAS PUEDE USAR EN EL CHAT (si sube este archivo a
-una conversación con Claude, Claude debe reconocer y ejecutar):
+COMMANDS TOMAS CAN USE IN CHAT (if he uploads this file to a
+conversation with Claude, Claude should recognize and act on
+these):
 
-- "crear idea nueva" → Preguntar UNO POR UNO (no todo junto):
+- "create new idea" → Ask ONE AT A TIME (never all together):
     1. Title
     2. Category
-    3. Description breve
-    4. Luego, según el tipo de proyecto, hacer preguntas de
-       descubrimiento una por una (como se hizo con la idea del
-       espejo: efectos técnicos necesarios, estilo visual, equipo
-       disponible, etc.), anotando cada respuesta antes de pasar
-       a la siguiente pregunta.
-    5. Para cada "cosa a resolver" que Tomas no sepa cómo hacer,
-       ofrecer un pie de búsqueda corto en inglés (términos exactos
-       para buscar en YouTube/Google), sin explicar de más salvo
-       que Tomas lo pida explícitamente.
-    6. Armar el plan de producción por fases (ver plantilla abajo),
-       adaptando qué fases aplican.
-    7. Agregar el nuevo objeto al array IDEAS y confirmar a Tomas.
+    3. Short description
+    4. Then, depending on the type of project, ask discovery
+       questions one at a time (like was done with the mirror idea:
+       needed technical effects, visual style, available equipment,
+       etc.), noting each answer before moving to the next question.
+    5. For each "thing to figure out" Tomas doesn't know how to
+       solve, offer a short search hint in English (exact terms to
+       search on YouTube/Google), without over-explaining unless
+       Tomas explicitly asks for more.
+    6. Build the phase-based production plan (see template below),
+       adapting which phases apply.
+    7. Add the new object to the IDEAS array and confirm with Tomas.
 
-- "modificar idea" → Preguntar cuál idea (por título), qué campo
-    quiere modificar, aplicar el cambio directo en el array IDEAS.
+- "modify idea" → Ask which idea (by title), which field they want
+    to change, apply the change directly in the IDEAS array.
 
-- "tachar" / "marcar resuelto" → Preguntar qué idea y qué ítem de
-    cosasAResolver, marcar resuelto: true.
+- "check off" / "mark resolved" → Ask which idea and which item in
+    cosasAResolver, mark resuelto: true.
 
-- "ver ideas" / "listar ideas" → Listar en texto plano: título,
-    categoría, estado, dificultad, tiempo. No hace falta regenerar
-    el HTML para esto, es solo lectura en el chat.
+- "show ideas" / "list ideas" → List in plain text: title, category,
+    status, difficulty, time. No need to regenerate the HTML for
+    this, it's just reading in chat.
 
-- "borrar idea" → Confirmar con Tomas antes de eliminar el objeto
-    del array.
+- "delete idea" → Confirm with Tomas before removing the object from
+    the array.
 
-- "cambiar estado" → Preguntar cuál idea y el nuevo estado
+- "change status" → Ask which idea and the new status
     (idea / en-curso / pausada / descartada / completada).
 
-PLANTILLA DE FASES DE PRODUCCIÓN (usar como referencia, adaptar
-según el tipo de proyecto — un videojuego no tiene "filmación" pero
-sí puede tener "prototipo jugable", por ejemplo. Usar criterio):
+PRODUCTION PHASE TEMPLATE (use as a reference, adapt to the type of
+project — a video game has no "filming" but might have a
+"playable prototype" phase, for example. Use judgment):
 
-  PREPRODUCCIÓN: definir el QUÉ (guión/storyboard/diseño, mapear
-    necesidades, moodboard, definir estilo visual).
-  PRUEBAS TÉCNICAS: resolver el CÓMO antes de comprometer tiempo
-    grande (tutoriales, pruebas cortas, validar efectos/técnicas).
-  FILMACIÓN: si aplica, rodaje real.
-  PRODUCCIÓN 3D: modelado, texturizado, animación, render.
-  POSTPRODUCCIÓN: compositing, edición, color, sonido.
-  DISTRIBUCIÓN: breakdown de contenido para Instagram siguiendo el
-    flujo de captura por etapas ya definido (carpetas numeradas
-    /social/01_blocking/ etc, dividir proyectos grandes en 4-6
-    publicaciones separadas a lo largo de 3-4 semanas).
+  PREPRODUCTION: define the WHAT (script/storyboard/design, map out
+    needs, moodboard, define visual style).
+  TECHNICAL TESTS: figure out the HOW before committing a lot of
+    time (tutorials, short tests, validate effects/techniques).
+  FILMING: if it applies, actual shooting.
+  3D PRODUCTION: modeling, texturing, animation, rendering.
+  POSTPRODUCTION: compositing, editing, color, sound.
+  DISTRIBUTION: content breakdown for Instagram following the
+    already-defined capture-by-stage workflow (numbered folders
+    /social/01_blocking/ etc, split large projects into 4-6
+    separate posts spread across 3-4 weeks).
 
-REGLA DE ORO: siempre preguntar una cosa por vez a Tomas, nunca
-tirar una lista larga de preguntas juntas. Si Tomas no sabe cómo
-resolver algo técnico, es tarea de Claude investigar y sugerir el
-pie de búsqueda concreto, no dejarlo como pregunta abierta para
-Tomas.
+GOLDEN RULE: always ask Tomas one thing at a time, never dump a
+long list of questions together. If Tomas doesn't know how to solve
+something technical, it's Claude's job to research it and suggest a
+concrete search hint, not leave it as an open question for Tomas.
 
-Después de cualquier edición, actualizar también el objeto y
-mantener el HTML/CSS/JS de abajo intacto (no tocar el diseño salvo
-que Tomas lo pida explícitamente).
+After any edit, update the object and keep the HTML/CSS/JS below
+intact (don't touch the design unless Tomas explicitly asks for
+it).
 ====================================================================
 -->
 
@@ -1402,7 +1397,7 @@ que Tomas lo pida explícitamente).
     left: 12px;
   }
 
-  /* ============ RESULTADOS DE BÚSQUEDA POR SECCIÓN ============ */
+  /* ============ SEARCH RESULTS BY SECTION ============ */
   .search-results-wrap {
     display: flex;
     flex-direction: column;
@@ -2148,61 +2143,62 @@ que Tomas lo pida explícitamente).
 
 <script>
 /* ==================================================================
-   DATOS POR DEFECTO — el contenido "de fábrica" del archivo, tal
-   como lo dejó Claude la última vez que lo regeneró. Ver
-   instrucciones completas en el comentario HTML al inicio del
-   archivo.
+   DEFAULT DATA — the "factory" content of the file, as Claude left
+   it the last time it regenerated it. See the full instructions in
+   the HTML comment at the top of the file.
 
-   IMPORTANTE — PERSISTENCIA: esta página usa localStorage del
-   navegador para guardar los cambios que Tomas hace clickeando
-   (agregar ideas, tildar cosas a resolver, etc). Eso significa:
-     - Los cambios quedan guardados en ESTE navegador, en ESTA PC,
-       aunque cierres y vuelvas a abrir el archivo.
-     - Si Tomas abre el archivo en otra compu o navegador, va a ver
-       los datos de acá abajo (IDEAS_DEFAULT), no los cambios locales.
-     - localStorage puede borrarse si se limpia el caché del
-       navegador. Para tener un respaldo real, Tomas puede usar el
-       botón "Export" para bajar un .html actualizado con todo
-       incluido, o pedirle a Claude que lo regenere en el chat.
+   IMPORTANT — PERSISTENCE: this page uses the browser's
+   localStorage to save the changes Tomas makes by clicking around
+   (adding ideas, checking off things to figure out, etc). This
+   means:
+     - Changes stay saved in THIS browser, on THIS computer, even if
+       you close and reopen the file.
+     - If Tomas opens the file on another computer or browser, he'll
+       see the data below (IDEAS_DEFAULT), not the local changes.
+     - localStorage can be cleared if the browser cache is cleared.
+       For a real backup, Tomas can use the "Export" button to
+       download an updated .html with everything included, or ask
+       Claude to regenerate it in chat.
 ================================================================== */
-// Sin login: arranca vacío. El usuario ve una página en blanco lista para
-// que cree sus propias ideas (que se guardan en localStorage hasta que
-// se loguee, momento en el que se reemplazan por lo que haya en su Drive).
+// Without login: starts empty. The user sees a blank page ready
+// for them to create their own ideas (saved in localStorage until
+// they log in, at which point they get replaced by whatever's in
+// their Drive).
 const IDEAS_DEFAULT = [];
 
 /* ==================================================================
    PERSISTENCIA — Google Drive API
-   La fuente de verdad es un archivo JSON en el Google Drive de
-   Tomas (mismo Drive donde vive este propio ideas.html). Se accede
-   vía OAuth (Google Identity Services, flujo implicit/token client)
-   con el scope "drive.file", que solo da acceso a archivos creados
-   por esta app — no a todo el Drive del usuario.
+   The source of truth is a JSON file in Tomas's Google Drive (same
+   Drive where this ideas.html itself lives). Accessed via OAuth
+   (Google Identity Services, implicit/token client flow) with the
+   "drive.file" scope, which only grants access to files created by
+   this app — not the user's whole Drive.
 
-   Uso de un solo usuario: no hay manejo de conflictos entre
-   ediciones simultáneas de distintos dispositivos. Última escritura
-   gana. Si Tomas edita desde dos lugares a la vez, puede perder
-   cambios — esto es aceptable para uso personal, no para multiusuario.
+   Single-user usage: there's no handling of conflicts between
+   simultaneous edits from different devices. Last write wins. If
+   Tomas edits from two places at once, he can lose changes — this
+   is acceptable for personal use, not for a multi-user setup.
 
-   localStorage se sigue usando como caché rápida y como fallback si
-   Drive no está disponible (sin conexión, token vencido, etc), para
-   que la app siga siendo usable offline en modo lectura/edición
-   local, con sincronización a Drive cuando vuelve la conexión.
+   localStorage is still used as a fast cache and as a fallback if
+   Drive isn't available (offline, expired token, etc), so the app
+   stays usable offline in local read/edit mode, syncing to Drive
+   once the connection comes back.
 ================================================================== */
 
-// TODO(Tomas/Claude): completar con el Client ID real de Google
-// Cloud Console (OAuth 2.0 Client ID, tipo "Web application").
+// TODO(Tomas/Claude): fill in with the real Client ID from Google
+// Cloud Console (OAuth 2.0 Client ID, "Web application" type).
 const GOOGLE_CLIENT_ID = "1024164485431-9h1o8dauc3nrf2o0gbc7hqugkurf57uv.apps.googleusercontent.com";
 const DRIVE_SCOPE = "https://www.googleapis.com/auth/drive.file https://www.googleapis.com/auth/userinfo.email";
-const TOMAS_EMAIL = "tomaspcarballes@gmail.com"; // usado solo para mostrarle a Tomas el changelog completo (patches internos); cualquier otra cuenta ve solo las versiones públicas
+const TOMAS_EMAIL = "tomaspcarballes@gmail.com"; // used only to show Tomas the full changelog (internal patches); any other account only sees public versions
 const DRIVE_DATA_FILENAME = "artdeas-data.json";
-const STORAGE_KEY = "artdeas_cache_v1"; // caché local, no fuente de verdad
+const STORAGE_KEY = "artdeas_cache_v1"; // local cache, not the source of truth
 const TOKEN_STORAGE_KEY = "artdeas_gtoken_v1";
 
-let driveFileId = null; // id del archivo de datos en Drive, una vez localizado/creado
+let driveFileId = null; // id of the data file in Drive, once located/created
 let accessToken = null;
 let tokenClient = null;
-let driveReady = false; // true cuando ya se autenticó y confirmó el archivo de datos
-let currentUserEmail = null; // email de la cuenta de Google conectada, o null si no hay sesión
+let driveReady = false; // true once authenticated and the data file has been confirmed
+let currentUserEmail = null; // email of the connected Google account, or null if no session
 
 async function fetchCurrentUserEmail() {
   try {
@@ -2237,7 +2233,7 @@ function loadCachedIdeas() {
       const raw = localStorage.getItem(STORAGE_KEY);
       if (raw) return JSON.parse(raw);
     } catch (e) {
-      console.error("No se pudo leer caché local:", e);
+      console.error("Could not read local cache:", e);
     }
   }
   return JSON.parse(JSON.stringify(IDEAS_DEFAULT)); // copia profunda
@@ -2248,14 +2244,14 @@ function saveCachedIdeas() {
   try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(IDEAS));
   } catch (e) {
-    console.error("No se pudo guardar caché local:", e);
+    console.error("Could not save local cache:", e);
   }
 }
 
-// Arranca siempre con la caché local (o los datos de fábrica) para
-// que la página se vea de inmediato sin esperar el login de Google.
-// Una vez que Drive confirma sesión, initDriveSync() puede
-// reemplazar IDEAS con lo que haya en Drive si es más reciente.
+// Always starts with the local cache (or the default data) so the
+// page shows up immediately without waiting for Google login. Once
+// Drive confirms a session, initDriveSync() can replace IDEAS with
+// whatever is in Drive if it's more recent.
 let IDEAS = loadCachedIdeas();
 
 /* ---------------- Google Identity Services (login) ---------------- */
@@ -2376,7 +2372,7 @@ async function driveWriteDataFile(fileId, ideasData) {
   if (!res.ok) throw new Error("Error guardando en Drive: " + res.status);
 }
 
-/* ---------------- Orquestación: init + save ---------------- */
+/* ---------------- Orchestration: init + save ---------------- */
 
 async function initDriveSync(ideasParaCrearSiNoExiste) {
   try {
@@ -2388,9 +2384,9 @@ async function initDriveSync(ideasParaCrearSiNoExiste) {
     currentUserEmail = await fetchCurrentUserEmail();
     let file = await driveFindDataFile();
     if (!file) {
-      // Primera vez que esta cuenta usa Artdeas: recién ahí tiene
-      // sentido "sembrar" el archivo de Drive con lo que había en
-      // local (si el usuario confirmó eso, ver connectGoogleDrive).
+      // First time this account uses Artdeas: only then does it make
+      // sense to "seed" the Drive file with whatever was local (if
+      // the user confirmed that, see connectGoogleDrive).
       const seed = ideasParaCrearSiNoExiste || [];
       const newId = await driveCreateDataFile(seed);
       driveFileId = newId;
@@ -2398,9 +2394,10 @@ async function initDriveSync(ideasParaCrearSiNoExiste) {
       saveCachedIdeas();
       render();
     } else {
-      // Ya existe un archivo de datos para esta cuenta: ESE es la
-      // fuente de verdad, reemplaza lo que hubiera en pantalla sin
-      // importar si era anónimo o de otra sesión.
+      // A data file already exists for this account: THAT is the
+      // source of truth, it replaces whatever was on screen
+      // regardless of whether it was anonymous or from another
+      // session.
       driveFileId = file.id;
       const remoteIdeas = await driveReadDataFile(driveFileId);
       IDEAS = Array.isArray(remoteIdeas) ? remoteIdeas : [];
@@ -2411,7 +2408,7 @@ async function initDriveSync(ideasParaCrearSiNoExiste) {
     updateDriveButtonUI();
     setSyncStatus("Synced with Google Drive.", false);
   } catch (e) {
-    console.error("No se pudo sincronizar con Drive:", e);
+    console.error("Could not sync with Drive:", e);
     setSyncStatus("Could not connect to Google Drive. Working in local mode.", true);
   }
 }
@@ -2423,9 +2420,9 @@ function setSyncStatus(msg, isWarning) {
   el.style.color = isWarning ? "var(--rust)" : "var(--slate)";
 }
 
-// saveIdeas() guarda siempre en caché local al instante (para que la
-// UI nunca espere a la red), y además intenta escribir a Drive en
-// segundo plano si ya hay sesión activa.
+// saveIdeas() always saves to local cache immediately (so the UI
+// never waits on the network), and also attempts to write to Drive
+// in the background if a session is already active.
 function saveIdeas() {
   saveCachedIdeas();
   if (driveReady && driveFileId && accessToken) {
@@ -2436,12 +2433,13 @@ function saveIdeas() {
   }
 }
 
-// connectGoogleDrive() es lo que dispara el botón de la sidebar
-// cuando NO hay sesión activa. Si hay ideas locales (creadas sin
-// login) en este momento, avisamos ANTES de loguear que van a dejar
-// de verse (se reemplazan por lo que haya en el Drive de la cuenta,
-// o quedan como semilla inicial si es la primera vez que esa cuenta
-// usa Artdeas) — así nadie pierde datos sin enterarse.
+// connectGoogleDrive() is what the sidebar button triggers when
+// there's NO active session. If there are local ideas (created
+// without login) at this point, we warn BEFORE logging in that
+// they're about to stop being visible (they get replaced by
+// whatever's in the account's Drive, or kept as a starting seed if
+// it's that account's first time using Artdeas) — so nobody loses
+// data without knowing.
 async function connectGoogleDrive() {
   if (driveReady) {
     disconnectGoogleDrive();
@@ -2459,14 +2457,14 @@ async function connectGoogleDrive() {
     if (!confirmado) return;
   }
   setSyncStatus("Connecting to Google Drive...", false);
-  initDriveSync(IDEAS); // si la cuenta es nueva, se ofrece esto como semilla
+  initDriveSync(IDEAS); // if the account is new, this is offered as the seed
 }
 
-// disconnectGoogleDrive(): borra el token guardado y vuelve la app
-// al modo anónimo, con las ideas en memoria pasando a vivir solo en
-// localStorage otra vez (no se borra el archivo de Drive, solo se
-// corta la sesión local — el archivo sigue ahí para la próxima vez
-// que el usuario se loguee con esa cuenta).
+// disconnectGoogleDrive(): clears the saved token and returns the
+// app to anonymous mode, with the ideas in memory going back to
+// living only in localStorage (this does NOT delete the Drive
+// file, it only ends the local session — the file stays there for
+// next time the user logs in with that account).
 async function disconnectGoogleDrive() {
   const confirmado = await showConfirm("You'll go back to local-only mode on this device.", { title: "Disconnect Google Drive?", confirmLabel: "Disconnect", danger: true });
   if (!confirmado) return;
@@ -2527,12 +2525,12 @@ function toggleTheme() {
 })();
 
 /* ==================================================================
-   INSTALL BANNER — invita a agregar Artdeas a la pantalla de inicio.
-   Solo se muestra en pantallas chicas (mobile, donde "agregar a
-   inicio" tiene sentido real), con un pequeño delay para no golpear
-   apenas se abre la página, y solo si el usuario no lo cerró antes
-   (se recuerda en localStorage, sin volver a mostrarse esa sesión
-   ni las siguientes en ese navegador).
+   INSTALL BANNER — invites the user to add Artdeas to their home
+   screen. Only shows up on small screens (mobile, where "add to
+   home" actually makes sense), with a small delay so it doesn't hit
+   the user right as the page opens, and only if they haven't
+   dismissed it before (remembered in localStorage, so it won't show
+   again that session or the next ones on that browser).
 ================================================================== */
 const INSTALL_BANNER_DISMISSED_KEY = "artdeas_install_banner_dismissed";
 
@@ -2558,9 +2556,9 @@ function maybeShowInstallBanner() {
 }
 
 /* ==================================================================
-   GO TO TOP (botón flotante)
+   GO TO TOP (floating button)
 ================================================================== */
-const GO_TOP_THRESHOLD = 400; // px scrolleados antes de mostrar el botón
+const GO_TOP_THRESHOLD = 400; // px scrolled before showing the button
 
 function scrollToTop() {
   window.scrollTo({ top: 0, behavior: "smooth" });
@@ -2752,11 +2750,11 @@ function renderChangelogModal() {
 }
 
 /* ==================================================================
-   ESTADO DE LA APP — navegación tipo "páginas" sin recargar
+   APP STATE — "page"-style navigation without reloading
    view: "home" | "status" | "categoria" | "detalle"
 ================================================================== */
 let view = "home";
-let viewParam = null; // status key, categoria name, o idea id según la view
+let viewParam = null; // status key, category name, or idea id depending on the view
 let currentSearch = "";
 
 function getCategorias() {
@@ -2868,7 +2866,7 @@ async function deleteIdea(ideaId) {
 }
 
 /* ==================================================================
-   CREAR IDEA — formulario simple desde la página
+   CREATE IDEA — simple form from the page
 ================================================================== */
 function openNewIdeaForm() {
   switchNewIdeaMode("manual");
@@ -2925,11 +2923,11 @@ function submitNewIdea(e) {
 }
 
 /* ==================================================================
-   EDIT IDEA — edita los campos básicos (título, categoría, estado,
-   descripción) de una idea ya existente, sin tocar su plan de
-   producción ni sus cosas a resolver. Complementa a "Evolve idea",
-   que sirve para lo más grande (plan de producción, etc) con ayuda
-   de Claude.
+   EDIT IDEA — edits the basic fields (title, category, status,
+   description) of an existing idea, without touching its production
+   plan or things to figure out. Complements "Evolve idea", which
+   is for the bigger stuff (production plan, etc) with Claude's
+   help.
 ================================================================== */
 let pendingEditIdeaId = null;
 
@@ -2971,8 +2969,8 @@ function submitEditIdea(e) {
 }
 
 /* ==================================================================
-   IMPORTAR / EXPORTAR — para pegar ideas armadas en el chat con
-   Claude, o hacer backup completo del archivo.
+   IMPORT / EXPORT — for pasting ideas built in chat with Claude,
+   or doing a full backup of the file.
 ================================================================== */
 
 async function submitImport() {
@@ -2991,7 +2989,7 @@ async function submitImport() {
     if (!item.titulo) return;
     if (!item.id) item.id = slugify(item.titulo);
     if (IDEAS.some(i => i.id === item.id)) item.id = item.id + "-" + Date.now();
-    // Completar campos faltantes con valores por defecto
+    // Fill in missing fields with default values
     item.categoria = item.categoria || "No category";
     item.estado = item.estado || "idea";
     item.dificultad = item.dificultad ?? null;
@@ -3010,34 +3008,33 @@ async function submitImport() {
 }
 
 /* ==================================================================
-   COMPLETAR / ACTUALIZAR INFO — a diferencia de "Import desde
-   Claude" (que crea una idea nueva), esto actualiza los campos de
-   una idea que YA existe. Sirve para el caso típico: creaste la
-   idea con el formulario rápido (solo título/categoría/descripción),
-   charlaste con Claude en el chat para armar el plan de producción
-   completo, y ahora pegás ese JSON para completar la ficha sin
-   duplicar la idea.
+   UPDATE INFO — unlike "Import from Claude" (which creates a new
+   idea), this updates the fields of an idea that ALREADY exists.
+   Useful for the typical case: you created the idea with the quick
+   form (just title/category/description), chatted with Claude to
+   build the full production plan, and now you paste that JSON to
+   fill in the card without duplicating the idea.
 
-   Comportamiento del merge (campo por campo):
+   Merge behavior (field by field):
    - titulo, categoria, estado, dificultad, tiempo, descripcion:
-     se reemplazan SOLO si el JSON pegado trae ese campo definido
-     (no null/undefined). Si no lo trae, se conserva el valor actual.
-   - notas: se reemplaza el array completo si el JSON trae "notas".
-   - fases: se mergea fase por fase — si el JSON trae contenido para
-     "preproduccion", reemplaza esa fase puntual; las fases que el
-     JSON no menciona quedan como estaban.
-   - cosasAResolver: se AGREGAN los ítems nuevos del JSON a la lista
-     existente (no se pisan los que ya estaban, para no perder
-     progreso de cosas ya tildadas).
+     replaced ONLY if the pasted JSON includes that field (not
+     null/undefined). If it's missing, the current value is kept.
+   - notas: the full array is replaced if the JSON has "notas".
+   - fases: merged phase by phase — if the JSON has content for
+     "preproduccion", that phase gets replaced; phases the JSON
+     doesn't mention stay as they were.
+   - cosasAResolver: new items from the JSON are ADDED to the
+     existing list (existing items aren't overwritten, so no
+     progress on already-checked items is lost).
 ================================================================== */
 /* ==================================================================
-   ENRIQUECER IDEA — arma un mensaje con toda la info actual de la
-   idea, listo para pegar en un chat con Claude. No hay forma de que
-   un botón en esta página dispare una conversación automática en
-   Claude (no existe un canal en vivo entre esta página y el chat),
-   así que en vez de eso armamos el mensaje y se lo damos a Tomas
-   para que lo pegue él mismo — mismo mecanismo de Copy/Share/
-   Download que ya usa el resto de la página.
+   EVOLVE IDEA — builds a message with all the current info from
+   the idea, ready to paste into a chat with Claude or any other AI.
+   There's no way for a button on this page to trigger an automatic
+   conversation in a chat app (there's no live channel between this
+   page and the chat), so instead we build the message and hand it
+   to the user to paste themselves — same Copy/Share/Download
+   mechanism as the rest of the page.
 ================================================================== */
 function buildEnrichMessage(idea) {
   const faseOrden = ["preproduccion", "pruebasTecnicas", "filmacion", "produccion3d", "postproduccion", "distribucion"];
@@ -3075,8 +3072,8 @@ function buildEnrichMessage(idea) {
   }
 
   msg += `Help me expand and flesh out this idea: fill in whatever's missing from the production plan, suggest more things to figure out if it makes sense.\n\n`;
-  msg += `If you have direct access to my Google Drive in this chat, update the "artdeas-data.json" file there directly for this idea and let me know when it's done — I won't need to do anything else.\n\n`;
-  msg += `If you don't have Drive access, once we're done give me the result as a single JSON object (not inside a code block explanation, just the raw JSON) with this exact shape, so I can paste it into the "Evolve idea" box on the page:\n`;
+  msg += `(If you're Claude and you already have access to my Google Drive in this chat, you can also update the "artdeas-data.json" file there directly once we're done — but still give me the JSON below either way, as a record of the changes.)\n\n`;
+  msg += `IMPORTANT: once we're done talking this through, your FINAL reply must be ONLY a single raw JSON object — no explanation before or after it, no markdown code fences, just the JSON itself — with this exact shape, so I can paste it into the "Evolve idea" box on the page:\n`;
   msg += `{\n`;
   msg += `  "descripcion": "...",\n`;
   msg += `  "notas": ["...", "..."],\n`;
@@ -3092,7 +3089,7 @@ function buildEnrichMessage(idea) {
   msg += `    { "texto": "...", "resuelto": false, "busqueda": ["...", "..."] }\n`;
   msg += `  ]\n`;
   msg += `}\n`;
-  msg += `Only include fields that actually changed — leave out anything that should stay as it is. For "fases", only include the phases that have new content; phases left out (or as empty arrays) won't overwrite what's already there. For "cosasAResolver", new items get added to the existing list, they don't replace it.`;
+  msg += `Only include fields that actually changed — leave out anything that should stay as it is. For "fases", only include the phases that have new content; phases left out (or as empty arrays) won't overwrite what's already there. For "cosasAResolver", new items get added to the existing list, they don't replace it. Do not wrap the JSON in triple backticks or add any text around it — just the plain JSON object by itself.`;
 
   return msg;
 }
@@ -3172,14 +3169,14 @@ async function submitEvolve() {
 }
 
 /* ==================================================================
-   ENTREGA DE ARCHIVOS — la Web Share API con archivos (navigator.
-   share con { files }) requiere "contexto seguro" (HTTPS), y este
-   archivo se abre local (file://) o puede abrirse sin HTTPS, así que
-   el navegador puede no ofrecerlo aunque el teléfono lo soporte. En
-   vez de intentarlo en silencio y fallar sin avisar, mostramos
-   siempre un modal propio con tres opciones explícitas: Copy,
-   Share (intenta el share nativo; si el navegador no lo permite
-   en este contexto, avisa y cae a copiar), y Download.
+   FILE DELIVERY — the Web Share API with files (navigator.share
+   with { files }) requires a "secure context" (HTTPS), and this
+   file can be opened locally (file://) or without HTTPS, so the
+   browser may not offer it even if the phone supports it. Instead
+   of trying it silently and failing without warning, we always
+   show our own modal with three explicit options: Copy, Share
+   (tries the native share; if the browser doesn't allow it in
+   this context, it warns and falls back to copy), and Download.
 ================================================================== */
 let pendingExport = null; // { content, filename, mimeType }
 
@@ -3200,7 +3197,7 @@ async function exportCopyToClipboard() {
     await navigator.clipboard.writeText(pendingExport.content);
     exportFeedback("Copied to clipboard.");
   } catch (err) {
-    // Fallback para navegadores/contextos donde clipboard.writeText falla
+    // Fallback for browsers/contexts where clipboard.writeText fails
     const ta = document.createElement("textarea");
     ta.value = pendingExport.content;
     ta.style.position = "fixed";
@@ -3229,7 +3226,7 @@ async function exportShare() {
       closeExportOptions();
       return;
     } catch (err) {
-      if (err.name === "AbortError") return; // el usuario cerró el cajón de compartir
+      if (err.name === "AbortError") return; // the user closed the share sheet
       exportFeedback("Could not open the share menu on this browser. Use Copy or Download.", true);
       return;
     }
@@ -3240,13 +3237,12 @@ async function exportShare() {
 function exportDownload() {
   if (!pendingExport) return;
   const { content, filename, mimeType } = pendingExport;
-  // En iOS Safari, un blob con mimetype "text/html" suele abrirse
-  // directo en una pestaña nueva en vez de descargarse (Safari lo
-  // interpreta como una página para mostrar, no un archivo para
-  // guardar). Usamos "application/octet-stream" para los .html
-  // específicamente, que fuerza a los navegadores a tratarlo como
-  // descarga de archivo binario genérico en vez de intentar
-  // renderizarlo.
+  // On iOS Safari, a blob with mimetype "text/html" tends to open
+  // directly in a new tab instead of downloading (Safari interprets
+  // it as a page to display, not a file to save). We use
+  // "application/octet-stream" specifically for .html files, which
+  // forces browsers to treat it as a generic binary file download
+  // instead of trying to render it.
   const forcedType = mimeType === "text/html" ? "application/octet-stream" : mimeType;
   const blob = new Blob([content], { type: forcedType });
   const url = URL.createObjectURL(blob);
@@ -3273,34 +3269,33 @@ function exportBackup() {
 }
 
 /* ==================================================================
-   EXPORTAR HTML COMPLETO — genera una copia de esta misma página,
-   pero con IDEAS_DEFAULT reemplazado por los datos actuales (los que
-   están en localStorage en este momento). El resultado es un archivo
-   .html real, autocontenido, que no depende de localStorage: abrirlo
-   en cualquier PC/navegador muestra estos mismos datos "de fábrica".
-   Es la forma de tener un respaldo que sobrevive a un borrado de
-   caché, un cambio de navegador, o una reinstalación de PC.
+   EXPORT FULL HTML — generates a copy of this same page, but with
+   IDEAS_DEFAULT replaced by the current data (whatever's currently
+   in localStorage). The result is a real, self-contained .html file
+   that doesn't depend on localStorage: opening it on any PC/browser
+   shows this same "factory" data. It's a way to have a backup that
+   survives a cache wipe, a browser change, or a PC reinstall.
 ================================================================== */
-// Guardamos el código fuente ORIGINAL del documento (tal como se
-// cargó, antes de que cualquier render de JS lo modifique) apenas
-// arranca la página. Es clave usar esto para exportar, y NO
-// document.documentElement.outerHTML más tarde: ese outerHTML
-// refleja el DOM en vivo (con #main ya lleno de la vista actual
-// renderizada, inputs con su value actual, etc), no el archivo
-// fuente — exportar desde ahí genera un HTML "congelado" en el
-// estado de esa vista puntual, que rompe la interactividad al
-// volver a abrirlo.
+// We store the ORIGINAL source code of the document (as it was
+// loaded, before any JS render modifies it) as soon as the page
+// starts. It's key to use this for export, and NOT
+// document.documentElement.outerHTML later on: that outerHTML
+// reflects the live DOM (with #main already full of the current
+// rendered view, inputs with their current value, etc), not the
+// source file — exporting from there generates an HTML "frozen" in
+// the state of that specific view, which breaks interactivity when
+// reopened.
 const ORIGINAL_SOURCE_HTML = "<!DOCTYPE html>\n" + document.documentElement.outerHTML;
 
 function buildFullHtml() {
   const newDefaultBlock = "const IDEAS_DEFAULT = " + JSON.stringify(IDEAS, null, 2) + ";";
 
-  // Buscamos desde "const IDEAS_DEFAULT = " hasta el punto y coma que
-  // le sigue (cubre tanto el array vacío en una sola línea como el
-  // array con contenido multi-línea de versiones anteriores). Después
-  // confirmamos que justo a continuación empieza el bloque de
-  // PERSISTENCIA, para no cortar en el lugar equivocado si "const
-  // IDEAS_DEFAULT" apareciera en otro contexto.
+  // We search from "const IDEAS_DEFAULT = " to the semicolon that
+  // follows it (covers both the empty array on a single line and
+  // the multi-line array with content from earlier versions). Then
+  // we confirm that the PERSISTENCE block starts right after, so we
+  // don't cut in the wrong place if "const IDEAS_DEFAULT" showed up
+  // in some other context.
   const startMarker = "const IDEAS_DEFAULT = ";
   const startIdx = ORIGINAL_SOURCE_HTML.indexOf(startMarker);
   if (startIdx === -1) return null;
@@ -3311,7 +3306,7 @@ function buildFullHtml() {
 
   const afterSemi = ORIGINAL_SOURCE_HTML.slice(semiIdx + 1);
   if (!afterSemi.trimStart().startsWith("/* ==") && !afterSemi.startsWith("\n\n/* ==")) {
-    return null; // el formato no es el esperado, mejor no arriesgar a cortar mal
+    return null; // format is not what was expected, better not risk cutting in the wrong place
   }
 
   const before = ORIGINAL_SOURCE_HTML.slice(0, startIdx);
@@ -3341,8 +3336,8 @@ function onSearchInput(e) {
   currentSearch = activeElement.value;
 
   const wasHome = view === "home";
-  // La búsqueda global siempre te lleva a "home" a ver resultados
-  // agrupados por sección, sin importar en qué página estabas.
+  // The global search always takes you to "home" to see results
+  // grouped by section, no matter what page you were on.
   if (currentSearch && view !== "home") {
     view = "home";
     viewParam = null;
@@ -3351,18 +3346,19 @@ function onSearchInput(e) {
   const viewChanged = !wasHome && view === "home";
 
   if (viewChanged) {
-    // Cambió de página de verdad (ej: estaba en Status y ahora va a
-    // Home) — ahí sí hace falta reconstruir todo, no hay forma de
-    // evitarlo porque cambia la estructura completa alrededor.
+    // The page actually changed (e.g. was on Status and now goes
+    // to Home) — this really does require rebuilding everything,
+    // there's no way around it since the whole structure around it
+    // changes.
     syncSearchInputs();
     render();
     return;
   }
 
-  // Sin cambio de vista: actualizamos SOLO el contenedor de
-  // resultados, dejando el <input> donde está. Reemplazar el propio
-  // input mientras el usuario está escribiendo en él le hace perder
-  // el foco y el cursor, y se siente como que el buscador "se traba".
+  // No view change: we ONLY update the results container, leaving
+  // the <input> where it is. Replacing the input itself while the
+  // user is typing in it makes them lose focus and cursor position,
+  // and it feels like the search box "freezes up".
   syncSearchInputs();
   if (view === "home") {
     const area = document.getElementById("home-results-area");
@@ -3384,9 +3380,10 @@ function onSearchInput(e) {
     }
   }
 
-  // Restaurar posición del cursor: como no tocamos el propio input
-  // esta vez, no hace falta, pero si algún navegador lo requiere por
-  // el value ya seteado, esto es un resguardo inofensivo.
+  // Restore cursor position: since we didn't touch the input
+  // itself this time it's not strictly needed, but if some browser
+  // requires it because of the value already being set, this is a
+  // harmless safeguard.
   if (activeElement.value === currentSearch && document.activeElement === activeElement) {
     try { activeElement.setSelectionRange(cursorPos, cursorPos); } catch(e) {}
   }
@@ -3570,7 +3567,7 @@ function renderSearchResults(query) {
 }
 
 /* ==================================================================
-   RENDER: PÁGINA DE ESTADO/CATEGORÍA — flecha volver + listado
+   RENDER: STATUS/CATEGORY PAGE — back arrow + listing
 ================================================================== */
 function renderListPageView() {
   const list = filteredIdeas();
@@ -3713,9 +3710,9 @@ function renderDetailView(idea) {
   `;
 }
 
-// Un paso de fase puede ser un string, o un objeto
-// { texto: "...", explicacion: "..." } cuando conviene aclarar un
-// término técnico para alguien que no lo conoce todavía.
+// A phase step can be a string, or an object
+// { texto: "...", explicacion: "..." } when it's worth clarifying a
+// technical term for someone who doesn't know it yet.
 function renderStep(step) {
   if (typeof step === "string") {
     return `<li>${escapeHtml(step)}</li>`;
@@ -3741,10 +3738,10 @@ function render() {
   updateMobileHeaderBrand();
 }
 
-// En la Home, el hero ya muestra un logo grande más abajo, así que
-// el logo del header de arriba (mobile) se oculta ahí para no
-// duplicarlo — en cualquier otra vista (detalle, listas por estado o
-// categoría) el logo del header se ve normal.
+// On Home, the hero already shows a big logo further down, so the
+// header logo up top (mobile) is hidden there to avoid duplicating
+// it — on any other view (detail, lists by status or category) the
+// header logo shows normally.
 function updateMobileHeaderBrand() {
   const brand = document.getElementById("mobile-brand");
   if (!brand) return;
@@ -3762,9 +3759,9 @@ function escapeAttr(str) {
 
 render();
 
-// Intento silencioso de sincronizar con Drive al cargar, solo si ya
-// hay un token guardado (no fuerza el prompt de login la primera vez;
-// para eso Tomas usa el botón "Connect Google Drive").
+// Silent attempt to sync with Drive on load, only if there's
+// already a saved token (doesn't force the login prompt the first
+// time; that's what the "Connect Google Drive" button is for).
 if (getSavedToken()) {
   initDriveSync();
 }
