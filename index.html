@@ -1911,7 +1911,7 @@ it).
       </svg>
         <div class="brand-text">
           <div class="brand">Artdeas</div>
-          <div class="brand-sub">Backlog · Tomas</div>
+          <div class="brand-sub" id="brand-sub"></div>
         </div>
       </div>
       <button class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" title="Toggle theme" aria-label="Toggle theme"></button>
@@ -2466,29 +2466,43 @@ async function connectGoogleDrive() {
 // file, it only ends the local session — the file stays there for
 // next time the user logs in with that account).
 async function disconnectGoogleDrive() {
-  const confirmado = await showConfirm("You'll go back to local-only mode on this device.", { title: "Disconnect Google Drive?", confirmLabel: "Disconnect", danger: true });
+  const confirmado = await showConfirm("You'll go back to local-only mode on this device. Your ideas from this account will be cleared from the screen (they stay safe in your Drive — just reconnect to see them again).", { title: "Disconnect Google Drive?", confirmLabel: "Disconnect", danger: true });
   if (!confirmado) return;
   driveReady = false;
   driveFileId = null;
   accessToken = null;
   currentUserEmail = null;
   if (STORAGE_OK) {
-    try { localStorage.removeItem(TOKEN_STORAGE_KEY); } catch(e) {}
+    try {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEY); // also clear local cache so ideas don't linger
+    } catch(e) {}
   }
+  IDEAS = loadCachedIdeas(); // reload from cache (now empty) → starts fresh
   updateDriveButtonUI();
   setSyncStatus("Disconnected. Working in local mode.", false);
+  render();
 }
 
 function updateDriveButtonUI() {
   const btn = document.getElementById("drive-connect-btn");
   const label = document.getElementById("drive-btn-label");
+  const sub = document.getElementById("brand-sub");
   if (!btn || !label) return;
   if (driveReady) {
     btn.classList.add("connected");
     label.textContent = "Disconnect Google Drive";
+    // Show the email in the sidebar subtitle, trimmed to keep it compact
+    if (sub) {
+      const display = currentUserEmail
+        ? currentUserEmail.split("@")[0]
+        : "My backlog";
+      sub.textContent = display + " · Backlog";
+    }
   } else {
     btn.classList.remove("connected");
     label.textContent = "Connect Google Drive";
+    if (sub) sub.textContent = "";
   }
 }
 
