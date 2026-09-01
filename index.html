@@ -1646,6 +1646,54 @@ it).
     border-top: 1px solid var(--line);
   }
 
+  /* Edit modal — Production plan tab */
+  .edit-plan-step {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    margin-bottom: 8px;
+  }
+
+  .edit-plan-step-inputs {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .edit-plan-del-btn {
+    flex-shrink: 0;
+    width: 28px;
+    height: 28px;
+    border: 1px solid var(--line-strong);
+    border-radius: 6px;
+    background: none;
+    color: var(--rust);
+    font-size: 1rem;
+    cursor: pointer;
+    line-height: 1;
+    margin-top: 4px;
+  }
+
+  .edit-plan-del-btn:hover { background: var(--rust-soft); }
+
+  .edit-plan-add-btn {
+    font-family: var(--sans);
+    font-size: 0.78rem;
+    color: var(--accent);
+    background: none;
+    border: 1px dashed var(--accent);
+    border-radius: 6px;
+    padding: 5px 10px;
+    cursor: pointer;
+    margin-top: 2px;
+  }
+
+  .edit-plan-add-btn:hover { background: var(--accent-soft); }
+
+  .edit-plan-fase { border-bottom: 1px solid var(--line); padding-bottom: 14px; }
+  .edit-plan-fase:last-child { border-bottom: none; }
+
   .evolve-step:first-of-type {
     border-top: none;
     padding-top: 4px;
@@ -2021,34 +2069,55 @@ it).
 
 <!-- MODAL: Edit idea (título/categoría/estado/descripción básicos) -->
 <div class="modal-overlay" id="edit-idea-overlay">
-  <div class="modal-box">
+  <div class="modal-box" style="max-width:560px">
     <div class="modal-head">
       <div class="modal-title">Edit idea</div>
       <button class="modal-close" onclick="closeEditIdeaModal()">&times;</button>
     </div>
-    <form id="edit-idea-form" onsubmit="submitEditIdea(event)">
-      <label class="form-label">Title</label>
-      <input class="form-input" id="eid-titulo" required>
 
-      <label class="form-label">Category</label>
-      <input class="form-input" id="eid-categoria" required>
+    <div class="new-idea-tabs">
+      <button class="new-idea-tab active" id="edit-tab-basic" onclick="switchEditTab('basic')">Basic</button>
+      <button class="new-idea-tab" id="edit-tab-plan" onclick="switchEditTab('plan')">Production plan</button>
+      <button class="new-idea-tab" id="edit-tab-json" onclick="switchEditTab('json')">Raw JSON</button>
+    </div>
 
-      <label class="form-label">Status</label>
-      <select class="form-input" id="eid-estado">
-        <option value="idea">Idea</option>
-        <option value="en-curso">In progress</option>
-        <option value="pausada">Paused</option>
-        <option value="descartada">Discarded</option>
-        <option value="completada">Completed</option>
-      </select>
+    <!-- TAB: Basic -->
+    <div id="edit-panel-basic">
+      <form id="edit-idea-form" onsubmit="submitEditBasic(event)">
+        <label class="form-label">Title</label>
+        <input class="form-input" id="eid-titulo" required>
 
-      <label class="form-label">Description</label>
-      <textarea class="form-input form-textarea" id="eid-descripcion"></textarea>
+        <label class="form-label">Category</label>
+        <input class="form-input" id="eid-categoria" required>
 
-      <div class="form-hint">Production plan and things to figure out are edited from the detail view, or with "Evolve idea".</div>
+        <label class="form-label">Status</label>
+        <select class="form-input" id="eid-estado">
+          <option value="idea">Idea</option>
+          <option value="en-curso">In progress</option>
+          <option value="pausada">Paused</option>
+          <option value="descartada">Discarded</option>
+          <option value="completada">Completed</option>
+        </select>
 
-      <button type="submit" class="form-submit">Save changes</button>
-    </form>
+        <label class="form-label">Description</label>
+        <textarea class="form-input form-textarea" id="eid-descripcion"></textarea>
+
+        <button type="submit" class="form-submit">Save changes</button>
+      </form>
+    </div>
+
+    <!-- TAB: Production plan -->
+    <div id="edit-panel-plan" style="display:none">
+      <div id="edit-plan-body"></div>
+      <button class="form-submit" onclick="submitEditPlan()">Save changes</button>
+    </div>
+
+    <!-- TAB: Raw JSON -->
+    <div id="edit-panel-json" style="display:none">
+      <div class="form-hint" style="margin-bottom:10px">Edit the full idea object directly. Changes are applied when you click Save — invalid JSON will be flagged before saving.</div>
+      <textarea class="form-input form-textarea" id="eid-json" style="min-height:260px;font-family:var(--mono);font-size:0.75rem"></textarea>
+      <button class="form-submit" onclick="submitEditJson()">Save changes</button>
+    </div>
   </div>
 </div>
 
@@ -2949,6 +3018,8 @@ function openEditIdeaModal(ideaId) {
   const idea = IDEAS.find(i => i.id === ideaId);
   if (!idea) return;
   pendingEditIdeaId = ideaId;
+  switchEditTab("basic"); // always open on Basic tab
+  // Prefill Basic
   document.getElementById("eid-titulo").value = idea.titulo;
   document.getElementById("eid-categoria").value = idea.categoria;
   document.getElementById("eid-estado").value = idea.estado;
@@ -2961,25 +3032,130 @@ function closeEditIdeaModal() {
   pendingEditIdeaId = null;
 }
 
-function submitEditIdea(e) {
+function switchEditTab(tab) {
+  ["basic", "plan", "json"].forEach(t => {
+    document.getElementById("edit-tab-" + t).classList.toggle("active", t === tab);
+    document.getElementById("edit-panel-" + t).style.display = t === tab ? "" : "none";
+  });
+  if (tab === "plan") renderEditPlan();
+  if (tab === "json") renderEditJson();
+}
+
+// ---- TAB: Basic ----
+function submitEditBasic(e) {
   e.preventDefault();
   const idea = IDEAS.find(i => i.id === pendingEditIdeaId);
   if (!idea) return;
-
   const titulo = document.getElementById("eid-titulo").value.trim();
   const categoria = document.getElementById("eid-categoria").value.trim();
   const descripcion = document.getElementById("eid-descripcion").value.trim();
   const estado = document.getElementById("eid-estado").value;
   if (!titulo || !categoria) return;
-
   idea.titulo = titulo;
   idea.categoria = categoria;
   idea.descripcion = descripcion || "No description yet.";
   idea.estado = estado;
-
   saveIdeas();
   closeEditIdeaModal();
   openDetail(idea.id);
+}
+
+// ---- TAB: Production plan ----
+const FASE_ORDER = ["preproduccion", "pruebasTecnicas", "filmacion", "produccion3d", "postproduccion", "distribucion"];
+
+function renderEditPlan() {
+  const idea = IDEAS.find(i => i.id === pendingEditIdeaId);
+  if (!idea) return;
+  const body = document.getElementById("edit-plan-body");
+  body.innerHTML = FASE_ORDER.map(faseKey => {
+    const label = FASE_LABELS[faseKey];
+    const steps = idea.fases[faseKey] || [];
+    const stepsHtml = steps.map((step, idx) => {
+      const txt = typeof step === "string" ? step : step.texto;
+      const exp = typeof step === "object" ? (step.explicacion || "") : "";
+      return `
+        <div class="edit-plan-step" data-fase="${faseKey}" data-idx="${idx}">
+          <div class="edit-plan-step-inputs">
+            <input class="form-input edit-step-txt" style="margin-bottom:4px" value="${escapeAttr(txt)}" placeholder="Step description">
+            <input class="form-input edit-step-exp" style="font-size:0.78rem" value="${escapeAttr(exp)}" placeholder="Explanation (optional)">
+          </div>
+          <button type="button" class="edit-plan-del-btn" onclick="editPlanDeleteStep('${faseKey}', ${idx})" title="Delete step">&times;</button>
+        </div>`;
+    }).join("");
+    return `
+      <div class="edit-plan-fase" style="margin-bottom:16px">
+        <div class="form-label" style="margin-bottom:6px">${escapeHtml(label)}</div>
+        <div id="edit-plan-steps-${faseKey}">${stepsHtml}</div>
+        <button type="button" class="edit-plan-add-btn" onclick="editPlanAddStep('${faseKey}')">+ Add step</button>
+      </div>`;
+  }).join("");
+}
+
+function editPlanCollectSteps(faseKey) {
+  const container = document.getElementById("edit-plan-steps-" + faseKey);
+  if (!container) return [];
+  return Array.from(container.querySelectorAll(".edit-plan-step")).map(row => {
+    const txt = row.querySelector(".edit-step-txt").value.trim();
+    const exp = row.querySelector(".edit-step-exp").value.trim();
+    if (!txt) return null;
+    return exp ? { texto: txt, explicacion: exp } : txt;
+  }).filter(s => s !== null);
+}
+
+function editPlanAddStep(faseKey) {
+  // Save current state before adding so indexes stay correct
+  const idea = IDEAS.find(i => i.id === pendingEditIdeaId);
+  if (!idea) return;
+  FASE_ORDER.forEach(k => { idea.fases[k] = editPlanCollectSteps(k); });
+  idea.fases[faseKey].push("");
+  renderEditPlan();
+}
+
+function editPlanDeleteStep(faseKey, idx) {
+  const idea = IDEAS.find(i => i.id === pendingEditIdeaId);
+  if (!idea) return;
+  FASE_ORDER.forEach(k => { idea.fases[k] = editPlanCollectSteps(k); });
+  idea.fases[faseKey].splice(idx, 1);
+  renderEditPlan();
+}
+
+function submitEditPlan() {
+  const idea = IDEAS.find(i => i.id === pendingEditIdeaId);
+  if (!idea) return;
+  FASE_ORDER.forEach(k => { idea.fases[k] = editPlanCollectSteps(k); });
+  saveIdeas();
+  closeEditIdeaModal();
+  openDetail(idea.id);
+}
+
+// ---- TAB: Raw JSON ----
+function renderEditJson() {
+  const idea = IDEAS.find(i => i.id === pendingEditIdeaId);
+  if (!idea) return;
+  document.getElementById("eid-json").value = JSON.stringify(idea, null, 2);
+}
+
+async function submitEditJson() {
+  const raw = document.getElementById("eid-json").value.trim();
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    await showAlert("The JSON is not valid. Fix any syntax errors before saving.", { title: "Invalid JSON" });
+    return;
+  }
+  if (!parsed.id || !parsed.titulo) {
+    await showAlert("The JSON must have at least an \"id\" and a \"titulo\" field.", { title: "Missing required fields" });
+    return;
+  }
+  const idx = IDEAS.findIndex(i => i.id === pendingEditIdeaId);
+  if (idx === -1) return;
+  // Keep the id unchanged to avoid breaking navigation
+  parsed.id = pendingEditIdeaId;
+  IDEAS[idx] = parsed;
+  saveIdeas();
+  closeEditIdeaModal();
+  openDetail(parsed.id);
 }
 
 /* ==================================================================
