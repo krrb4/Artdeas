@@ -1694,6 +1694,34 @@ it).
   .edit-plan-fase { border-bottom: 1px solid var(--line); padding-bottom: 14px; }
   .edit-plan-fase:last-child { border-bottom: none; }
 
+  /* Inline edit — step number badge (mirrors read mode .phase-num) */
+  .ie-step-num {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 20px;
+    height: 20px;
+    min-width: 20px;
+    border-radius: 50%;
+    background: var(--accent-soft);
+    color: var(--accent);
+    font-family: var(--mono);
+    font-size: 0.68rem;
+    font-weight: 700;
+    margin-top: 6px;
+  }
+
+  /* Remove bullets from phase steps in edit mode */
+  .ie-phase-steps {
+    list-style: none;
+    padding: 0;
+    margin: 6px 0 6px;
+  }
+
+  .ie-step-item {
+    margin-bottom: 10px;
+  }
+
   .edit-inline-section {
     padding: 18px 0;
     border-bottom: 1px solid var(--line);
@@ -3078,6 +3106,13 @@ async function saveInlineEdit() {
 }
 
 // Inline add/delete helpers for Notes
+function ieToggleExp(btn) {
+  const expInput = btn.previousElementSibling;
+  const showing = expInput.style.display !== "none";
+  expInput.style.display = showing ? "none" : "";
+  btn.textContent = showing ? "+ add explanation" : "− hide explanation";
+}
+
 function ieAddNote() {
   const idea = IDEAS.find(i => i.id === editingIdeaId);
   if (!idea) return;
@@ -3931,97 +3966,116 @@ function renderDetailReadMode(idea) {
 }
 
 function renderDetailEditMode(idea) {
+  const cfg = ESTADOS[idea.estado];
   const FASE_ORDER_LOCAL = ["preproduccion","pruebasTecnicas","filmacion","produccion3d","postproduccion","distribucion"];
 
-  const fieldsHtml = `
-    <div class="edit-inline-section">
-      <label class="form-label">Title</label>
-      <input class="form-input" id="ie-titulo" value="${escapeAttr(idea.titulo)}">
-
-      <label class="form-label">Category</label>
-      <input class="form-input" id="ie-categoria" value="${escapeAttr(idea.categoria)}">
-
-      <label class="form-label">Status</label>
-      <select class="form-input" id="ie-estado">
-        ${Object.keys(ESTADOS).map(k => `<option value="${k}" ${idea.estado === k ? 'selected' : ''}>${ESTADOS[k].label}</option>`).join("")}
-      </select>
-
-      <label class="form-label">Description</label>
-      <textarea class="form-input form-textarea" id="ie-descripcion">${escapeHtml(idea.descripcion)}</textarea>
-    </div>
-
-    <div class="edit-inline-section">
-      <div class="block-title c-notes" style="margin-bottom:10px"><span class="dot" style="background:var(--amber)"></span>Notes</div>
-      <div id="ie-notes-body">
-        ${(idea.notas || []).map((n, idx) => `
-          <div class="edit-plan-step">
-            <input class="form-input ie-note" value="${escapeAttr(n)}" placeholder="Note">
-            <button type="button" class="edit-plan-del-btn" onclick="ieDeleteNote(${idx})">&times;</button>
-          </div>`).join("")}
+  // ---- Fields tab ----
+  // Header: same visual structure as read mode, but inputs instead of text
+  const headerHtml = `
+    <div class="detail-header" style="gap:12px">
+      <input class="form-input" id="ie-titulo" value="${escapeAttr(idea.titulo)}" style="font-family:var(--serif);font-size:1.55rem;font-weight:600;letter-spacing:-0.015em;padding:6px 10px">
+      <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+        <select class="form-input" id="ie-estado" style="width:auto;font-size:0.82rem">
+          ${Object.keys(ESTADOS).map(k => `<option value="${k}" ${idea.estado === k ? 'selected' : ''}>${ESTADOS[k].label}</option>`).join("")}
+        </select>
+        <input class="form-input" id="ie-categoria" value="${escapeAttr(idea.categoria)}" style="width:auto;font-size:0.82rem" placeholder="Category">
       </div>
-      <button type="button" class="edit-plan-add-btn" onclick="ieAddNote()">+ Add note</button>
-    </div>
+    </div>`;
 
-    <div class="edit-inline-section">
-      <div class="block-title c-plan" style="margin-bottom:10px"><span class="dot" style="background:var(--accent)"></span>Production plan</div>
-      ${FASE_ORDER_LOCAL.map(faseKey => `
-        <div class="edit-plan-fase" style="margin-bottom:14px">
-          <div class="form-label" style="margin-bottom:6px">${FASE_LABELS[faseKey]}</div>
-          <div id="ie-plan-${faseKey}">
-            ${(idea.fases[faseKey] || []).map((step, idx) => {
-              const txt = typeof step === "string" ? step : step.texto;
-              const exp = typeof step === "object" ? (step.explicacion || "") : "";
-              return `
-                <div class="edit-plan-step">
-                  <div class="edit-plan-step-inputs">
-                    <input class="form-input ie-step-txt" data-fase="${faseKey}" data-idx="${idx}" style="margin-bottom:3px" value="${escapeAttr(txt)}" placeholder="Step">
-                    <input class="form-input ie-step-exp" data-fase="${faseKey}" data-idx="${idx}" style="font-size:0.78rem" value="${escapeAttr(exp)}" placeholder="Explanation (optional)">
-                  </div>
-                  <button type="button" class="edit-plan-del-btn" onclick="ieDeleteStep('${faseKey}', ${idx})">&times;</button>
-                </div>`;
-            }).join("")}
-          </div>
-          <button type="button" class="edit-plan-add-btn" onclick="ieAddStep('${faseKey}')">+ Add step</button>
-        </div>`).join("")}
-    </div>
-
-    <div class="edit-inline-section">
-      <div class="block-title c-resolve" style="margin-bottom:10px"><span class="dot" style="background:var(--rust)"></span>Things to figure out</div>
-      <div id="ie-tasks-body">
-        ${(idea.cosasAResolver || []).map((item, idx) => `
-          <div class="edit-plan-step">
-            <div class="edit-plan-step-inputs">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px">
-                <input type="checkbox" class="ie-task-resolved" ${item.resuelto ? "checked" : ""} style="width:16px;height:16px;flex-shrink:0">
-                <input class="form-input ie-task-texto" value="${escapeAttr(item.texto)}" placeholder="What to figure out">
+  // Production plan: same phase/step structure, but editable
+  const fasesHtml = `
+    <div class="detail-block">
+      <div class="block-title c-plan"><span class="dot" style="background:var(--accent)"></span>Production plan</div>
+      ${FASE_ORDER_LOCAL.map((faseKey, phaseIdx) => {
+        const steps = idea.fases[faseKey] || [];
+        const stepsHtml = steps.map((step, idx) => {
+          const txt = typeof step === "string" ? step : step.texto;
+          const exp = typeof step === "object" ? (step.explicacion || "") : "";
+          return `
+            <li class="ie-step-item">
+              <div style="display:flex;align-items:flex-start;gap:8px">
+                <span class="ie-step-num">${idx + 1}</span>
+                <div style="flex:1">
+                  <input class="ie-step-txt form-input" data-fase="${faseKey}" value="${escapeAttr(txt)}" placeholder="Step description" style="margin-bottom:${exp ? '4px' : '0'}">
+                  <input class="ie-step-exp form-input" data-fase="${faseKey}" value="${escapeAttr(exp)}" placeholder="Explanation (optional)" style="font-size:0.78rem;color:var(--slate)${exp ? '' : ';display:none'}">
+                  <button type="button" class="ie-exp-toggle" onclick="ieToggleExp(this)" style="font-size:0.72rem;color:var(--slate);background:none;border:none;cursor:pointer;padding:2px 0">${exp ? '− hide explanation' : '+ add explanation'}</button>
+                </div>
+                <button type="button" class="edit-plan-del-btn" onclick="ieDeleteStep('${faseKey}',${idx})" style="margin-top:4px">&times;</button>
               </div>
-              <input class="form-input ie-task-busqueda" style="font-size:0.78rem" value="${escapeAttr((item.busqueda || []).join(", "))}" placeholder="Search hints (comma-separated, optional)">
+            </li>`;
+        }).join("");
+        return `
+          <div class="phase" id="ie-plan-${faseKey}">
+            <div class="phase-head">
+              <span class="phase-num">${phaseIdx + 1}</span>
+              <span class="phase-name" style="color:var(--accent)">${FASE_LABELS[faseKey]}</span>
             </div>
-            <button type="button" class="edit-plan-del-btn" onclick="ieDeleteTask(${idx})">&times;</button>
-          </div>`).join("")}
-      </div>
+            <ul class="phase-steps ie-phase-steps">${stepsHtml}</ul>
+            <button type="button" class="edit-plan-add-btn" onclick="ieAddStep('${faseKey}')">+ Add step</button>
+          </div>`;
+      }).join("")}
+    </div>`;
+
+  // Description: same block, textarea instead of text
+  const descHtml = `
+    <div class="detail-block">
+      <div class="block-title c-desc"><span class="dot" style="background:var(--ink)"></span>Description</div>
+      <textarea class="form-input form-textarea" id="ie-descripcion" style="min-height:100px">${escapeHtml(idea.descripcion)}</textarea>
+    </div>`;
+
+  // Notes: same block, inputs instead of list items
+  const notasHtml = `
+    <div class="detail-block">
+      <div class="block-title c-notes"><span class="dot" style="background:var(--amber)"></span>Notes</div>
+      <ul class="notes-list" id="ie-notes-body" style="list-style:none;padding:0">
+        ${(idea.notas || []).map((n, idx) => `
+          <li style="display:flex;align-items:center;gap:8px;margin-bottom:6px">
+            <span style="color:var(--slate);font-size:0.8rem">·</span>
+            <input class="form-input ie-note" value="${escapeAttr(n)}" placeholder="Note" style="flex:1">
+            <button type="button" class="edit-plan-del-btn" onclick="ieDeleteNote(${idx})">&times;</button>
+          </li>`).join("")}
+      </ul>
+      <button type="button" class="edit-plan-add-btn" onclick="ieAddNote()">+ Add note</button>
+    </div>`;
+
+  // Things to figure out: same resolve-list structure, but editable
+  const resolverHtml = `
+    <div class="detail-block">
+      <div class="block-title c-resolve"><span class="dot" style="background:var(--rust)"></span>Things to figure out</div>
+      <ul class="resolve-list" id="ie-tasks-body">
+        ${(idea.cosasAResolver || []).map((item, idx) => `
+          <li class="resolve-item ${item.resuelto ? 'done' : ''}" style="align-items:flex-start">
+            <input type="checkbox" class="ie-task-resolved" ${item.resuelto ? "checked" : ""} style="width:16px;height:16px;flex-shrink:0;margin-top:4px;cursor:pointer">
+            <div style="flex:1">
+              <input class="form-input ie-task-texto" value="${escapeAttr(item.texto)}" placeholder="What to figure out" style="margin-bottom:4px">
+              <input class="form-input ie-task-busqueda" value="${escapeAttr((item.busqueda || []).join(", "))}" placeholder="Search hints (comma-separated, optional)" style="font-size:0.78rem;color:var(--slate)">
+            </div>
+            <button type="button" class="edit-plan-del-btn" onclick="ieDeleteTask(${idx})" style="margin-top:2px">&times;</button>
+          </li>`).join("")}
+      </ul>
       <button type="button" class="edit-plan-add-btn" onclick="ieAddTask()">+ Add item</button>
     </div>`;
 
+  const fieldsHtml = headerHtml + fasesHtml + descHtml + notasHtml + resolverHtml;
+
+  // ---- JSON tab ----
   const jsonHtml = `
-    <div class="edit-inline-section">
-      <div class="form-hint" style="margin-bottom:10px">Edit the full idea object directly. Save will validate and apply the JSON.</div>
-      <textarea class="form-input form-textarea" id="ie-json" style="min-height:320px;font-family:var(--mono);font-size:0.75rem">${escapeHtml(JSON.stringify(idea, null, 2))}</textarea>
-    </div>`;
+    <textarea class="form-input" id="ie-json"
+      style="width:100%;min-height:calc(100vh - 220px);box-sizing:border-box;font-family:var(--mono);font-size:0.75rem;resize:vertical"
+    >${escapeHtml(JSON.stringify(idea, null, 2))}</textarea>`;
 
   return `
-    <div class="detail-top-row">
+    <div class="detail-top-row" style="position:sticky;top:0;background:var(--paper);z-index:10;padding:8px 0;margin-bottom:0">
       <button class="back-btn" onclick="cancelEditIdea()">← Cancel</button>
-      <div style="display:flex;gap:8px">
-        <button class="complete-info-btn enrich-btn" onclick="saveInlineEdit()">
+      <div style="display:flex;gap:8px;align-items:center">
+        <div class="new-idea-tabs" style="margin:0">
+          <button class="new-idea-tab active" id="ie-tab-fields" onclick="switchInlineEditTab('fields')">Fields</button>
+          <button class="new-idea-tab" id="ie-tab-json" onclick="switchInlineEditTab('json')">JSON</button>
+        </div>
+        <button class="complete-info-btn enrich-btn" onclick="saveInlineEdit()" style="margin:0">
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M19 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11l5 5v11a2 2 0 0 1-2 2z"/><polyline points="17 21 17 13 7 13"/><polyline points="7 3 7 8 15 8"/></svg>Save
         </button>
       </div>
-    </div>
-
-    <div class="new-idea-tabs" style="margin-bottom:0">
-      <button class="new-idea-tab active" id="ie-tab-fields" onclick="switchInlineEditTab('fields')">Fields</button>
-      <button class="new-idea-tab" id="ie-tab-json" onclick="switchInlineEditTab('json')">JSON</button>
     </div>
 
     <div id="ie-panel-fields">${fieldsHtml}</div>
