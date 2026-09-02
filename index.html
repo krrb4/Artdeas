@@ -3046,17 +3046,11 @@ function ieCollectFields() {
   const FASE_ORDER_LOCAL = ["preproduccion","pruebasTecnicas","filmacion","produccion3d","postproduccion","distribucion"];
   const fases = {};
   FASE_ORDER_LOCAL.forEach(faseKey => {
-    const container = document.getElementById("ie-plan-" + faseKey);
-    if (!container) { fases[faseKey] = idea.fases[faseKey] || []; return; }
-    fases[faseKey] = Array.from(container.querySelectorAll(".edit-plan-step")).map(row => {
-      const txt = row.querySelector(".ie-step-txt")?.value.trim();
-      const exp = row.querySelector(".ie-step-exp")?.value.trim();
-      if (!txt) return null;
-      return exp ? { texto: txt, explicacion: exp } : txt;
-    }).filter(s => s !== null);
+    const collected = ieCollectSteps(faseKey);
+    fases[faseKey] = collected !== null ? collected : (idea.fases[faseKey] || []);
   });
 
-  const cosasAResolver = Array.from(document.querySelectorAll("#ie-tasks-body .edit-plan-step")).map(row => {
+  const cosasAResolver = Array.from(document.querySelectorAll("#ie-tasks-body li")).map(row => {
     const texto = row.querySelector(".ie-task-texto")?.value.trim();
     const resuelto = row.querySelector(".ie-task-resolved")?.checked || false;
     const busquedaRaw = row.querySelector(".ie-task-busqueda")?.value.trim();
@@ -3129,66 +3123,65 @@ function ieDeleteNote(idx) {
 }
 
 // Inline add/delete helpers for Production plan steps
+function ieCollectSteps(faseKey) {
+  const container = document.getElementById("ie-plan-" + faseKey);
+  if (!container) return null; // null = container not in DOM, keep existing data
+  // New template uses .ie-step-item; each has .ie-step-txt and .ie-step-exp inputs
+  return Array.from(container.querySelectorAll(".ie-step-item")).map(row => {
+    const txt = row.querySelector(".ie-step-txt")?.value.trim();
+    const expEl = row.querySelector(".ie-step-exp");
+    const exp = expEl?.style.display !== "none" ? expEl?.value.trim() : "";
+    if (!txt) return null;
+    return exp ? { texto: txt, explicacion: exp } : txt;
+  }).filter(s => s !== null);
+}
+
 function ieAddStep(faseKey) {
   const idea = IDEAS.find(i => i.id === editingIdeaId);
   if (!idea) return;
-  // Persist current values before re-rendering
   const FASE_ORDER_LOCAL = ["preproduccion","pruebasTecnicas","filmacion","produccion3d","postproduccion","distribucion"];
   FASE_ORDER_LOCAL.forEach(k => {
-    const container = document.getElementById("ie-plan-" + k);
-    if (!container) return;
-    idea.fases[k] = Array.from(container.querySelectorAll(".edit-plan-step")).map(row => {
-      const txt = row.querySelector(".ie-step-txt")?.value.trim();
-      const exp = row.querySelector(".ie-step-exp")?.value.trim();
-      if (!txt) return null;
-      return exp ? { texto: txt, explicacion: exp } : txt;
-    }).filter(s => s !== null);
+    const collected = ieCollectSteps(k);
+    if (collected !== null) idea.fases[k] = collected; // only update if container was in DOM
   });
   idea.fases[faseKey].push("");
   render();
 }
+
 function ieDeleteStep(faseKey, idx) {
   const idea = IDEAS.find(i => i.id === editingIdeaId);
   if (!idea) return;
   const FASE_ORDER_LOCAL = ["preproduccion","pruebasTecnicas","filmacion","produccion3d","postproduccion","distribucion"];
   FASE_ORDER_LOCAL.forEach(k => {
-    const container = document.getElementById("ie-plan-" + k);
-    if (!container) return;
-    idea.fases[k] = Array.from(container.querySelectorAll(".edit-plan-step")).map(row => {
-      const txt = row.querySelector(".ie-step-txt")?.value.trim();
-      const exp = row.querySelector(".ie-step-exp")?.value.trim();
-      if (!txt) return null;
-      return exp ? { texto: txt, explicacion: exp } : txt;
-    }).filter(s => s !== null);
+    const collected = ieCollectSteps(k);
+    if (collected !== null) idea.fases[k] = collected;
   });
   idea.fases[faseKey].splice(idx, 1);
   render();
 }
 
 // Inline add/delete helpers for Things to figure out
-function ieAddTask() {
-  const idea = IDEAS.find(i => i.id === editingIdeaId);
-  if (!idea) return;
-  idea.cosasAResolver = Array.from(document.querySelectorAll("#ie-tasks-body .edit-plan-step")).map(row => {
+function ieCollectTasks() {
+  return Array.from(document.querySelectorAll("#ie-tasks-body li")).map(row => {
     const texto = row.querySelector(".ie-task-texto")?.value.trim();
     const resuelto = row.querySelector(".ie-task-resolved")?.checked || false;
     const busquedaRaw = row.querySelector(".ie-task-busqueda")?.value.trim();
     const busqueda = busquedaRaw ? busquedaRaw.split(",").map(s => s.trim()).filter(s => s) : null;
     return texto ? { texto, resuelto, busqueda } : null;
   }).filter(t => t !== null);
+}
+
+function ieAddTask() {
+  const idea = IDEAS.find(i => i.id === editingIdeaId);
+  if (!idea) return;
+  idea.cosasAResolver = ieCollectTasks();
   idea.cosasAResolver.push({ texto: "", resuelto: false, busqueda: null });
   render();
 }
 function ieDeleteTask(idx) {
   const idea = IDEAS.find(i => i.id === editingIdeaId);
   if (!idea) return;
-  idea.cosasAResolver = Array.from(document.querySelectorAll("#ie-tasks-body .edit-plan-step")).map(row => {
-    const texto = row.querySelector(".ie-task-texto")?.value.trim();
-    const resuelto = row.querySelector(".ie-task-resolved")?.checked || false;
-    const busquedaRaw = row.querySelector(".ie-task-busqueda")?.value.trim();
-    const busqueda = busquedaRaw ? busquedaRaw.split(",").map(s => s.trim()).filter(s => s) : null;
-    return texto ? { texto, resuelto, busqueda } : null;
-  }).filter(t => t !== null);
+  idea.cosasAResolver = ieCollectTasks();
   idea.cosasAResolver.splice(idx, 1);
   render();
 }
