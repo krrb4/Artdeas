@@ -2281,12 +2281,16 @@ function loadCachedIdeas() {
   if (STORAGE_OK) {
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
-      if (raw) return JSON.parse(raw);
+      if (raw) {
+        const ideas = JSON.parse(raw);
+        ideas.forEach(migrateFasesIfNeeded);
+        return ideas;
+      }
     } catch (e) {
       console.error("Could not read local cache:", e);
     }
   }
-  return JSON.parse(JSON.stringify(IDEAS_DEFAULT)); // copia profunda
+  return JSON.parse(JSON.stringify(IDEAS_DEFAULT)); // deep copy
 }
 
 function saveCachedIdeas() {
@@ -2451,6 +2455,7 @@ async function initDriveSync(ideasParaCrearSiNoExiste) {
       driveFileId = file.id;
       const remoteIdeas = await driveReadDataFile(driveFileId);
       IDEAS = Array.isArray(remoteIdeas) ? remoteIdeas : [];
+      IDEAS.forEach(migrateFasesIfNeeded);
       saveCachedIdeas();
       render();
     }
@@ -2651,7 +2656,9 @@ const ESTADOS = {
   "completada":  { label: "Completed",  color: "#8b7bd8", soft: "#ebe7fa" }
 };
 
-const FASE_LABELS = {
+// Migration helper: convert old fixed-key fases object to new array format.
+// Only needed for ideas created before the v0.7.0 model change.
+const LEGACY_FASE_LABELS = {
   preproduccion: "Preproduction",
   pruebasTecnicas: "Technical tests",
   filmacion: "Filming",
@@ -2659,6 +2666,15 @@ const FASE_LABELS = {
   postproduccion: "Postproduction",
   distribucion: "Distribution"
 };
+
+function migrateFasesIfNeeded(idea) {
+  if (Array.isArray(idea.fases)) return;
+  if (!idea.fases || typeof idea.fases !== "object") { idea.fases = []; return; }
+  const ORDER = ["preproduccion","pruebasTecnicas","filmacion","produccion3d","postproduccion","distribucion"];
+  idea.fases = ORDER
+    .filter(k => idea.fases[k] && idea.fases[k].length)
+    .map(k => ({ nombre: LEGACY_FASE_LABELS[k], pasos: idea.fases[k] }));
+}
 
 /* ==================================================================
    CHANGELOG
@@ -2982,7 +2998,7 @@ function submitNewIdea(e) {
     dificultad: null, tiempo: null,
     descripcion: descripcion || "No description yet.",
     notas: [],
-    fases: { preproduccion: [], pruebasTecnicas: [], filmacion: [], produccion3d: [], postproduccion: [], distribucion: [] },
+    fases: [],
     cosasAResolver: []
   });
   saveIdeas();
@@ -3031,36 +3047,6 @@ function switchInlineEditTab(tab) {
 }
 
 // Collect the current state of the Fields tab into a full idea object
-function ieCollectFields() {
-  const idea = IDEAS.find(i => i.id === editingIdeaId);
-  if (!idea) return null;
-
-  const titulo = document.getElementById("ie-titulo").value.trim();
-  const categoria = document.getElementById("ie-categoria").value.trim();
-  const estado = document.getElementById("ie-estado").value;
-  const descripcion = document.getElementById("ie-descripcion").value.trim();
-
-  const notas = Array.from(document.querySelectorAll(".ie-note"))
-    .map(el => el.value.trim()).filter(v => v);
-
-  const FASE_ORDER_LOCAL = ["preproduccion","pruebasTecnicas","filmacion","produccion3d","postproduccion","distribucion"];
-  const fases = {};
-  FASE_ORDER_LOCAL.forEach(faseKey => {
-    const collected = ieCollectSteps(faseKey);
-    fases[faseKey] = collected !== null ? collected : (idea.fases[faseKey] || []);
-  });
-
-  const cosasAResolver = Array.from(document.querySelectorAll("#ie-tasks-body li")).map(row => {
-    const texto = row.querySelector(".ie-task-texto")?.value.trim();
-    const resuelto = row.querySelector(".ie-task-resolved")?.checked || false;
-    const busquedaRaw = row.querySelector(".ie-task-busqueda")?.value.trim();
-    const busqueda = busquedaRaw ? busquedaRaw.split(",").map(s => s.trim()).filter(s => s) : null;
-    return texto ? { texto, resuelto, busqueda } : null;
-  }).filter(t => t !== null);
-
-  return { ...idea, titulo, categoria, estado, descripcion: descripcion || "No description yet.", notas, fases, cosasAResolver };
-}
-
 async function saveInlineEdit() {
   const idea = IDEAS.find(i => i.id === editingIdeaId);
   if (!idea) return;
@@ -3123,40 +3109,81 @@ function ieDeleteNote(idx) {
 }
 
 // Inline add/delete helpers for Production plan steps
-function ieCollectSteps(faseKey) {
-  const container = document.getElementById("ie-plan-" + faseKey);
-  if (!container) return null; // null = container not in DOM, keep existing data
-  // New template uses .ie-step-item; each has .ie-step-txt and .ie-step-exp inputs
-  return Array.from(container.querySelectorAll(".ie-step-item")).map(row => {
-    const txt = row.querySelector(".ie-step-txt")?.value.trim();
-    const expEl = row.querySelector(".ie-step-exp");
-    const exp = expEl?.style.display !== "none" ? expEl?.value.trim() : "";
-    if (!txt) return null;
-    return exp ? { texto: txt, explicacion: exp } : txt;
-  }).filter(s => s !== null);
+function ieCollectFases() {
+  // Collect all phases and their steps from the DOM
+  return Array.from(document.querySelectorAll(".ie-phase")).map(phaseEl => {
+    const nombre = phaseEl.querySelector(".ie-fase-nombre")?.value.trim() || "Phase";
+    const pasos = Array.from(phaseEl.querySelectorAll(".ie-step-item")).map(row => {
+      const txt = row.querySelector(".ie-step-txt")?.value.trim();
+      const expEl = row.querySelector(".ie-step-exp");
+      const exp = expEl?.style.display !== "none" ? expEl?.value.trim() : "";
+      if (!txt) return null;
+      return exp ? { texto: txt, explicacion: exp } : txt;
+    }).filter(s => s !== null);
+    return { nombre, pasos };
+  }).filter(f => f.nombre); // keep phases even if empty
 }
 
-function ieAddStep(faseKey) {
+function ieCollectFields() {
+  const idea = IDEAS.find(i => i.id === editingIdeaId);
+  if (!idea) return null;
+
+  const titulo = document.getElementById("ie-titulo").value.trim();
+  const categoria = document.getElementById("ie-categoria").value.trim();
+  const estado = document.getElementById("ie-estado").value;
+  const descripcion = document.getElementById("ie-descripcion").value.trim();
+
+  const notas = Array.from(document.querySelectorAll(".ie-note"))
+    .map(el => el.value.trim()).filter(v => v);
+
+  const fases = document.getElementById("ie-plan-container")
+    ? ieCollectFases()
+    : idea.fases; // fallback if container not in DOM
+
+  const cosasAResolver = Array.from(document.querySelectorAll("#ie-tasks-body li")).map(row => {
+    const texto = row.querySelector(".ie-task-texto")?.value.trim();
+    const resuelto = row.querySelector(".ie-task-resolved")?.checked || false;
+    const busquedaRaw = row.querySelector(".ie-task-busqueda")?.value.trim();
+    const busqueda = busquedaRaw ? busquedaRaw.split(",").map(s => s.trim()).filter(s => s) : null;
+    return texto ? { texto, resuelto, busqueda } : null;
+  }).filter(t => t !== null);
+
+  return { ...idea, titulo, categoria, estado, descripcion: descripcion || "No description yet.", notas, fases, cosasAResolver };
+}
+
+// Add/delete phases
+function ieAddFase() {
   const idea = IDEAS.find(i => i.id === editingIdeaId);
   if (!idea) return;
-  const FASE_ORDER_LOCAL = ["preproduccion","pruebasTecnicas","filmacion","produccion3d","postproduccion","distribucion"];
-  FASE_ORDER_LOCAL.forEach(k => {
-    const collected = ieCollectSteps(k);
-    if (collected !== null) idea.fases[k] = collected; // only update if container was in DOM
-  });
-  idea.fases[faseKey].push("");
+  idea.fases = ieCollectFases();
+  idea.fases.push({ nombre: "", pasos: [] });
   render();
 }
 
-function ieDeleteStep(faseKey, idx) {
+function ieDeleteFase(faseIdx) {
   const idea = IDEAS.find(i => i.id === editingIdeaId);
   if (!idea) return;
-  const FASE_ORDER_LOCAL = ["preproduccion","pruebasTecnicas","filmacion","produccion3d","postproduccion","distribucion"];
-  FASE_ORDER_LOCAL.forEach(k => {
-    const collected = ieCollectSteps(k);
-    if (collected !== null) idea.fases[k] = collected;
-  });
-  idea.fases[faseKey].splice(idx, 1);
+  idea.fases = ieCollectFases();
+  idea.fases.splice(faseIdx, 1);
+  render();
+}
+
+// Add/delete steps within a phase
+function ieAddStep(faseIdx) {
+  const idea = IDEAS.find(i => i.id === editingIdeaId);
+  if (!idea) return;
+  idea.fases = ieCollectFases();
+  if (!idea.fases[faseIdx]) return;
+  idea.fases[faseIdx].pasos.push("");
+  render();
+}
+
+function ieDeleteStep(faseIdx, stepIdx) {
+  const idea = IDEAS.find(i => i.id === editingIdeaId);
+  if (!idea) return;
+  idea.fases = ieCollectFases();
+  if (!idea.fases[faseIdx]) return;
+  idea.fases[faseIdx].pasos.splice(stepIdx, 1);
   render();
 }
 
@@ -3237,7 +3264,7 @@ async function submitImport() {
     item.tiempo = item.tiempo ?? null;
     item.descripcion = item.descripcion || "";
     item.notas = item.notas || [];
-    item.fases = item.fases || { preproduccion: [], pruebasTecnicas: [], filmacion: [], produccion3d: [], postproduccion: [], distribucion: [] };
+    item.fases = item.fases || [];
     item.cosasAResolver = item.cosasAResolver || [];
     IDEAS.push(item);
     count++;
@@ -3278,8 +3305,7 @@ async function submitImport() {
    mechanism as the rest of the page.
 ================================================================== */
 function buildEnrichMessage(idea) {
-  const faseOrden = ["preproduccion", "pruebasTecnicas", "filmacion", "produccion3d", "postproduccion", "distribucion"];
-  const fasesConContenido = faseOrden.filter(f => idea.fases[f] && idea.fases[f].length);
+  const fasesArray = Array.isArray(idea.fases) ? idea.fases.filter(f => f.pasos && f.pasos.length) : [];
 
   let msg = `I want to develop this idea from my Artdeas backlog further. Ask me one question at a time (don't dump a long list of questions at once), and for anything I don't know how to solve, give me a short search hint in English.\n\n`;
   msg += `TITLE: ${idea.titulo}\n`;
@@ -3291,11 +3317,11 @@ function buildEnrichMessage(idea) {
     msg += `CURRENT NOTES:\n${idea.notas.map(n => "- " + n).join("\n")}\n\n`;
   }
 
-  if (fasesConContenido.length) {
+  if (fasesArray.length) {
     msg += `CURRENT PRODUCTION PLAN:\n`;
-    fasesConContenido.forEach(f => {
-      msg += `${FASE_LABELS[f]}:\n`;
-      idea.fases[f].forEach(step => {
+    fasesArray.forEach(fase => {
+      msg += `${fase.nombre}:\n`;
+      (fase.pasos || []).forEach(step => {
         msg += "- " + stepText(step) + "\n";
       });
     });
@@ -3390,13 +3416,13 @@ async function submitEvolve() {
 
   if (item.notas !== undefined) idea.notas = item.notas;
 
-  if (item.fases) {
-    idea.fases = idea.fases || { preproduccion: [], pruebasTecnicas: [], filmacion: [], produccion3d: [], postproduccion: [], distribucion: [] };
-    Object.keys(item.fases).forEach(faseKey => {
-      if (Array.isArray(item.fases[faseKey]) && item.fases[faseKey].length) {
-        idea.fases[faseKey] = item.fases[faseKey];
-      }
-    });
+  if (Array.isArray(item.fases)) {
+    // New format: replace entirely
+    idea.fases = item.fases;
+  } else if (item.fases && typeof item.fases === "object") {
+    // Legacy format from old Claude responses: migrate on the fly
+    migrateFasesIfNeeded(item);
+    if (item.fases.length) idea.fases = item.fases;
   }
 
   if (Array.isArray(item.cosasAResolver) && item.cosasAResolver.length) {
@@ -3660,12 +3686,11 @@ function deepSearch(query) {
       if (n.toLowerCase().includes(q)) matches.push({ seccion: "Notes", texto: n });
     });
 
-    Object.keys(FASE_LABELS).forEach(faseKey => {
-      const steps = idea.fases[faseKey] || [];
-      steps.forEach(step => {
+    (Array.isArray(idea.fases) ? idea.fases : []).forEach(fase => {
+      (fase.pasos || []).forEach(step => {
         const txt = stepText(step);
         if (txt.toLowerCase().includes(q)) {
-          matches.push({ seccion: "Production plan — " + FASE_LABELS[faseKey], texto: txt });
+          matches.push({ seccion: "Production plan — " + fase.nombre, texto: txt });
         }
       });
     });
@@ -3882,20 +3907,19 @@ function renderDetailReadMode(idea) {
       <ul class="notes-list">${idea.notas.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul>
     </div>` : "";
 
-  const faseOrden = ["preproduccion","pruebasTecnicas","filmacion","produccion3d","postproduccion","distribucion"];
-  const fasesConContenido = faseOrden.filter(f => idea.fases[f] && idea.fases[f].length);
+  const fasesArray = Array.isArray(idea.fases) ? idea.fases.filter(f => f.pasos && f.pasos.length) : [];
 
-  const fasesHtml = fasesConContenido.length ? `
+  const fasesHtml = fasesArray.length ? `
     <div class="detail-block">
       <div class="block-title c-plan"><span class="dot" style="background:var(--accent)"></span>Production plan</div>
-      ${fasesConContenido.map((f, idx) => `
+      ${fasesArray.map((fase, idx) => `
         <div class="phase">
           <div class="phase-head">
             <span class="phase-num">${idx+1}</span>
-            <span class="phase-name" style="color:var(--accent)">${FASE_LABELS[f]}</span>
+            <span class="phase-name" style="color:var(--accent)">${escapeHtml(fase.nombre)}</span>
           </div>
           <ul class="phase-steps">
-            ${idea.fases[f].map(step => renderStep(step)).join("")}
+            ${(fase.pasos || []).map(step => renderStep(step)).join("")}
           </ul>
         </div>
       `).join("")}
@@ -3959,11 +3983,9 @@ function renderDetailReadMode(idea) {
 }
 
 function renderDetailEditMode(idea) {
-  const cfg = ESTADOS[idea.estado];
-  const FASE_ORDER_LOCAL = ["preproduccion","pruebasTecnicas","filmacion","produccion3d","postproduccion","distribucion"];
+  const fasesArray = Array.isArray(idea.fases) ? idea.fases : [];
 
   // ---- Fields tab ----
-  // Header: same visual structure as read mode, but inputs instead of text
   const headerHtml = `
     <div class="detail-header" style="gap:12px">
       <input class="form-input" id="ie-titulo" value="${escapeAttr(idea.titulo)}" style="font-family:var(--serif);font-size:1.55rem;font-weight:600;letter-spacing:-0.015em;padding:6px 10px">
@@ -3975,38 +3997,43 @@ function renderDetailEditMode(idea) {
       </div>
     </div>`;
 
-  // Production plan: same phase/step structure, but editable
+  // Production plan: free phases array, each with a name and steps
   const fasesHtml = `
     <div class="detail-block">
       <div class="block-title c-plan"><span class="dot" style="background:var(--accent)"></span>Production plan</div>
-      ${FASE_ORDER_LOCAL.map((faseKey, phaseIdx) => {
-        const steps = idea.fases[faseKey] || [];
-        const stepsHtml = steps.map((step, idx) => {
-          const txt = typeof step === "string" ? step : step.texto;
-          const exp = typeof step === "object" ? (step.explicacion || "") : "";
-          return `
-            <li class="ie-step-item">
-              <div style="display:flex;align-items:flex-start;gap:8px">
-                <span class="ie-step-num">${idx + 1}</span>
-                <div style="flex:1">
-                  <input class="ie-step-txt form-input" data-fase="${faseKey}" value="${escapeAttr(txt)}" placeholder="Step description" style="margin-bottom:${exp ? '4px' : '0'}">
-                  <input class="ie-step-exp form-input" data-fase="${faseKey}" value="${escapeAttr(exp)}" placeholder="Explanation (optional)" style="font-size:0.78rem;color:var(--slate)${exp ? '' : ';display:none'}">
-                  <button type="button" class="ie-exp-toggle" onclick="ieToggleExp(this)" style="font-size:0.72rem;color:var(--slate);background:none;border:none;cursor:pointer;padding:2px 0">${exp ? '− hide explanation' : '+ add explanation'}</button>
+      <div id="ie-plan-container">
+        ${fasesArray.map((fase, faseIdx) => {
+          const stepsHtml = (fase.pasos || []).map((step, stepIdx) => {
+            const txt = typeof step === "string" ? step : step.texto;
+            const exp = typeof step === "object" ? (step.explicacion || "") : "";
+            return `
+              <li class="ie-step-item">
+                <div style="display:flex;align-items:flex-start;gap:8px">
+                  <span class="ie-step-num">${stepIdx + 1}</span>
+                  <div style="flex:1">
+                    <input class="ie-step-txt form-input" value="${escapeAttr(txt)}" placeholder="Step description" style="margin-bottom:${exp ? '4px' : '0'}">
+                    <input class="ie-step-exp form-input" value="${escapeAttr(exp)}" placeholder="Explanation (optional)" style="font-size:0.78rem;color:var(--slate)${exp ? '' : ';display:none'}">
+                    <button type="button" class="ie-exp-toggle" onclick="ieToggleExp(this)" style="font-size:0.72rem;color:var(--slate);background:none;border:none;cursor:pointer;padding:2px 0">${exp ? '− hide explanation' : '+ add explanation'}</button>
+                  </div>
+                  <button type="button" class="edit-plan-del-btn" onclick="ieDeleteStep(${faseIdx},${stepIdx})" style="margin-top:4px">&times;</button>
                 </div>
-                <button type="button" class="edit-plan-del-btn" onclick="ieDeleteStep('${faseKey}',${idx})" style="margin-top:4px">&times;</button>
+              </li>`;
+          }).join("");
+          return `
+            <div class="phase ie-phase" data-fase-idx="${faseIdx}">
+              <div class="phase-head" style="justify-content:space-between">
+                <div style="display:flex;align-items:center;gap:8px;flex:1">
+                  <span class="phase-num">${faseIdx + 1}</span>
+                  <input class="ie-fase-nombre form-input" value="${escapeAttr(fase.nombre)}" placeholder="Phase name" style="font-size:0.92rem;font-weight:600;color:var(--accent);border-color:transparent;background:transparent;padding:3px 6px">
+                </div>
+                <button type="button" class="edit-plan-del-btn" onclick="ieDeleteFase(${faseIdx})" title="Delete phase" style="flex-shrink:0">&times;</button>
               </div>
-            </li>`;
-        }).join("");
-        return `
-          <div class="phase" id="ie-plan-${faseKey}">
-            <div class="phase-head">
-              <span class="phase-num">${phaseIdx + 1}</span>
-              <span class="phase-name" style="color:var(--accent)">${FASE_LABELS[faseKey]}</span>
-            </div>
-            <ul class="phase-steps ie-phase-steps">${stepsHtml}</ul>
-            <button type="button" class="edit-plan-add-btn" onclick="ieAddStep('${faseKey}')">+ Add step</button>
-          </div>`;
-      }).join("")}
+              <ul class="phase-steps ie-phase-steps">${stepsHtml}</ul>
+              <button type="button" class="edit-plan-add-btn" onclick="ieAddStep(${faseIdx})">+ Add step</button>
+            </div>`;
+        }).join("")}
+      </div>
+      <button type="button" class="edit-plan-add-btn" style="margin-top:10px" onclick="ieAddFase()">+ Add phase</button>
     </div>`;
 
   // Description: same block, textarea instead of text
