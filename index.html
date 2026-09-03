@@ -3353,19 +3353,18 @@ function buildEnrichMessage(idea) {
   msg += `{\n`;
   msg += `  "descripcion": "...",\n`;
   msg += `  "notas": ["...", "..."],\n`;
-  msg += `  "fases": {\n`;
-  msg += `    "preproduccion": ["...", { "texto": "...", "explicacion": "..." }],\n`;
-  msg += `    "pruebasTecnicas": [],\n`;
-  msg += `    "filmacion": [],\n`;
-  msg += `    "produccion3d": [],\n`;
-  msg += `    "postproduccion": [],\n`;
-  msg += `    "distribucion": []\n`;
-  msg += `  },\n`;
+  msg += `  "fases": [\n`;
+  msg += `    { "nombre": "Phase name", "pasos": ["step 1", { "texto": "step 2", "explicacion": "optional clarification" }] },\n`;
+  msg += `    { "nombre": "Another phase", "pasos": ["..."] }\n`;
+  msg += `  ],\n`;
   msg += `  "cosasAResolver": [\n`;
-  msg += `    { "texto": "...", "resuelto": false, "busqueda": ["...", "..."] }\n`;
+  msg += `    { "texto": "...", "resuelto": false, "busqueda": ["search hint 1", "search hint 2"] }\n`;
   msg += `  ]\n`;
   msg += `}\n`;
-  msg += `Only include fields that actually changed — leave out anything that should stay as it is. For "fases", only include the phases that have new content; phases left out (or as empty arrays) won't overwrite what's already there. For "cosasAResolver", new items get added to the existing list, they don't replace it. Do not wrap the JSON in triple backticks or add any text around it — just the plain JSON object by itself.`;
+  msg += `Key rules for the JSON:\n`;
+  msg += `- "fases" is a FREE array — use whatever phase names make sense for this specific idea. Don't use fixed names like "preproduccion" or "filmacion" unless they actually apply. A recipe might have "Ingredients", "Preparation", "Baking". A drawing might have "References", "Sketch", "Final lineart". Use whatever fits.\n`;
+  msg += `- Only include fields that actually changed. For "fases", replace the whole array if you're changing the plan. For "cosasAResolver", new items get ADDED to the existing list (don't repeat items already there). For "notas", replace the whole array.\n`;
+  msg += `- Do not wrap the JSON in triple backticks or add any text around it — just the raw JSON object by itself.`;
 
   return msg;
 }
