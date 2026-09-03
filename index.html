@@ -3056,7 +3056,7 @@ async function saveInlineEdit() {
 
   if (activeJson) {
     // Save from JSON tab
-    const raw = document.getElementById("ie-json")?.value.trim();
+    const raw = stripJsonFences(document.getElementById("ie-json")?.value || "");
     try {
       updated = JSON.parse(raw);
     } catch (e) {
@@ -3187,6 +3187,15 @@ function ieDeleteStep(faseIdx, stepIdx) {
   render();
 }
 
+// Strip markdown code fences if the user pasted ```json ... ``` from an AI response.
+// Also handles triple backticks without a language tag.
+function stripJsonFences(str) {
+  return str.trim()
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```$/, "")
+    .trim();
+}
+
 // Inline add/delete helpers for Things to figure out
 function ieCollectTasks() {
   return Array.from(document.querySelectorAll("#ie-tasks-body li")).map(row => {
@@ -3242,7 +3251,7 @@ function cancelEdit(ideaId) {
 ================================================================== */
 
 async function submitImport() {
-  const raw = document.getElementById("import-textarea").value.trim();
+  const raw = stripJsonFences(document.getElementById("import-textarea").value);
   if (!raw) return;
   let parsed;
   try {
@@ -3393,7 +3402,7 @@ function evolveCopyPrompt() {
 }
 
 async function submitEvolve() {
-  const raw = document.getElementById("evolve-textarea").value.trim();
+  const raw = stripJsonFences(document.getElementById("evolve-textarea").value);
   if (!raw || !pendingEvolveIdeaId) return;
   let item;
   try {
