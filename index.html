@@ -157,7 +157,7 @@ for help on a specific idea from the page itself
 The page has an "Evolve idea" button (amber colored) in the header
 of each idea's detail view. Using it opens a modal with two steps:
 
-STEP 1 (top of the modal): "Copy prompt for Claude" — automatically
+STEP 1 (top of the modal): "Copy prompt for AI" — automatically
 builds a text message with all the current info for that idea
 (title, description, notes, production plan, things to figure out)
 plus instructions for the AI, and offers it to Tomas to copy (via
@@ -2067,7 +2067,7 @@ it).
 
     <div class="new-idea-tabs">
       <button class="new-idea-tab active" id="tab-manual" onclick="switchNewIdeaMode('manual')">Write it myself</button>
-      <button class="new-idea-tab" id="tab-import" onclick="switchNewIdeaMode('import')">Import from Claude</button>
+      <button class="new-idea-tab" id="tab-import" onclick="switchNewIdeaMode('import')">Import from AI</button>
     </div>
 
     <form id="new-idea-form" onsubmit="submitNewIdea(event)">
@@ -2095,7 +2095,7 @@ it).
     </form>
 
     <div id="import-panel" style="display:none">
-      <div class="form-hint" style="margin-bottom:12px">Paste the data block Claude gave you in chat after building your idea.</div>
+      <div class="form-hint" style="margin-bottom:12px">Paste the data block the AI gave you in chat after building your idea.</div>
       <textarea class="form-input form-textarea" id="import-textarea" style="min-height:200px;font-family:var(--mono);font-size:0.78rem" placeholder='{"titulo": "...", "categoria": "...", ...}'></textarea>
       <button class="form-submit" onclick="submitImport()">Import</button>
     </div>
@@ -2106,21 +2106,21 @@ it).
 <div class="modal-overlay" id="evolve-overlay">
   <div class="modal-box" style="max-width:480px">
     <div class="modal-head">
-      <div class="modal-title">Evolve idea</div>
+      <div class="modal-title">Develop idea</div>
       <button class="modal-close" onclick="closeEvolveModal()">&times;</button>
     </div>
     <div class="form-hint" style="margin-bottom:12px">Working on: <strong id="evolve-idea-title" style="color:var(--ink)"></strong></div>
 
     <div class="evolve-step">
-      <div class="evolve-step-label"><span class="evolve-step-num">1</span>Send this to Claude</div>
-      <div class="form-hint" style="margin-bottom:10px">Copy the prompt and paste it into a chat with Claude — it already includes everything this idea has so far.</div>
-      <button class="form-submit" style="margin-top:0" onclick="evolveCopyPrompt()">Copy prompt for Claude</button>
+      <div class="evolve-step-label"><span class="evolve-step-num">1</span>Send this to an AI</div>
+      <div class="form-hint" style="margin-bottom:10px">Copy the prompt and paste it into any AI chat (Claude, ChatGPT, Gemini, etc.) — it already includes everything this idea has so far.</div>
+      <button class="form-submit" style="margin-top:0" onclick="evolveCopyPrompt()">Copy prompt for AI</button>
     </div>
 
     <div class="evolve-step">
-      <div class="evolve-step-label"><span class="evolve-step-num">2</span>Paste Claude's reply back here</div>
+      <div class="evolve-step-label"><span class="evolve-step-num">2</span>Paste the AI's reply back here</div>
       <div class="form-hint" style="margin-bottom:10px">When you're done chatting, Claude will give you a JSON block — paste it below to update this idea.</div>
-      <textarea class="form-input form-textarea" id="evolve-textarea" style="min-height:160px;font-family:var(--mono);font-size:0.78rem" placeholder='{"fases": {...}, "cosasAResolver": [...], ...}'></textarea>
+      <textarea class="form-input form-textarea" id="evolve-textarea" style="min-height:160px;font-family:var(--mono);font-size:0.78rem" placeholder='{"fases": [{"nombre": "...", "pasos": ["..."]}], "cosasAResolver": [{"texto": "...", "resuelto": false}]}'></textarea>
       <button class="form-submit" onclick="submitEvolve()">Update idea</button>
     </div>
   </div>
@@ -2704,7 +2704,7 @@ const CHANGELOG_DATA = [
     public: true,
     items: [
       "Purple accent color, consistent across light and dark mode",
-      "\"Import from Claude\" is now a tab inside \"New idea\" instead of a separate button",
+      "\"Import from AI\" is now a tab inside \"New idea\" instead of a separate button",
       "Unified the download buttons into a single \"Backup your ideas\" option",
       "Native browser confirm/alert dialogs replaced with Artdeas-styled modals"
     ]
@@ -3257,7 +3257,7 @@ async function submitImport() {
   try {
     parsed = JSON.parse(raw);
   } catch (e) {
-    await showAlert("Paste exactly the block Claude gave you, without adding or removing anything.", { title: "That's not valid JSON" });
+    await showAlert("Paste exactly the JSON block the AI gave you, without adding or removing anything.", { title: "That's not valid JSON" });
     return;
   }
   const items = Array.isArray(parsed) ? parsed : [parsed];
@@ -3285,7 +3285,7 @@ async function submitImport() {
 }
 
 /* ==================================================================
-   UPDATE INFO — unlike "Import from Claude" (which creates a new
+   UPDATE INFO — unlike "Import from AI" (which creates a new
    idea), this updates the fields of an idea that ALREADY exists.
    Useful for the typical case: you created the idea with the quick
    form (just title/category/description), chatted with Claude to
@@ -3407,7 +3407,7 @@ async function submitEvolve() {
   try {
     item = JSON.parse(raw);
   } catch (e) {
-    await showAlert("Paste exactly the block Claude gave you, without adding or removing anything.", { title: "That's not valid JSON" });
+    await showAlert("Paste exactly the JSON block the AI gave you, without adding or removing anything.", { title: "That's not valid JSON" });
     return;
   }
   const idea = IDEAS.find(i => i.id === pendingEvolveIdeaId);
@@ -3959,7 +3959,7 @@ function renderDetailReadMode(idea) {
           <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4z"/></svg>Edit
         </button>
         <button class="complete-info-btn enrich-btn" onclick="openEvolveModal('${idea.id}')">
-          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Evolve idea
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-2px;margin-right:5px"><path d="M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83"/></svg>Develop idea
         </button>
       </div>
     </div>
