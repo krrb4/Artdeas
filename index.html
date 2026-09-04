@@ -1234,22 +1234,19 @@ it).
     transform: scale(1.15);
   }
 
-  /* Status picker popover */
+  /* Status picker — fixed so it's never clipped by overflow containers */
   .phase-status-picker {
-    position: absolute;
-    top: 36px;
-    left: 50%;
-    transform: translateX(-50%);
+    position: fixed;
     background: var(--panel);
     border: 1px solid var(--line-strong);
     border-radius: 10px;
-    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
-    z-index: 20;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.14);
+    z-index: 200;
     padding: 6px;
     display: flex;
     flex-direction: column;
     gap: 2px;
-    min-width: 130px;
+    min-width: 140px;
   }
 
   .phase-status-option {
@@ -2173,6 +2170,7 @@ it).
   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/></svg>
 </button>
 <div class="sidebar-overlay" id="sidebar-overlay" onclick="toggleMobileMenu()"></div>
+<div id="phase-picker-portal" style="display:none"></div>
 
 <div class="install-banner" id="install-banner" style="display:none">
   <div class="install-banner-icon">
@@ -2823,7 +2821,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-04 17:14 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-04 17:24 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -4048,44 +4046,26 @@ function phaseStatus(fase) {
   return fase.estado || "pending";
 }
 
+
 function renderPhaseTimeline(idea) {
   if (!idea.fases || idea.fases.length === 0) return "";
   const fases = idea.fases;
   const items = fases.map((fase, idx) => {
     const status = phaseStatus(fase);
     const isLast = idx === fases.length - 1;
-    const connectorDone = !isLast && phaseStatus(fases[idx + 1]) !== "pending" || (!isLast && status === "done");
-    const pickerId = `${idea.id}-${idx}`;
-    const isOpen = openPhasePickerId === pickerId;
-
+    const connectorDone = !isLast && status === "done";
     const icon = status === "done"
       ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`
       : status === "in-progress"
       ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="5"/></svg>`
       : "";
-
-    const picker = isOpen ? `
-      <div class="phase-status-picker" onclick="event.stopPropagation()">
-        <button class="phase-status-option ${status === 'pending' ? 'active' : ''}" onclick="setPhaseStatus('${idea.id}', ${idx}, 'pending')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg> Pending
-        </button>
-        <button class="phase-status-option ${status === 'in-progress' ? 'active' : ''}" onclick="setPhaseStatus('${idea.id}', ${idx}, 'in-progress')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg> In progress
-        </button>
-        <button class="phase-status-option ${status === 'done' ? 'active' : ''}" onclick="setPhaseStatus('${idea.id}', ${idx}, 'done')">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Done
-        </button>
-      </div>` : "";
-
     return `
-      <div class="phase-timeline-item" data-status="${status}" onclick="togglePhasePicker('${idea.id}', ${idx}, event)">
-        ${!isLast ? `<div class="phase-timeline-connector ${status === 'done' ? 'done' : ''}"></div>` : ""}
+      <div class="phase-timeline-item" data-status="${status}" data-idea-id="${escapeAttr(idea.id)}" data-phase-idx="${idx}" onclick="togglePhasePicker(event)">
+        ${!isLast ? `<div class="phase-timeline-connector ${connectorDone ? 'done' : ''}"></div>` : ""}
         <div class="phase-timeline-node">${icon}</div>
         <div class="phase-timeline-label">${escapeHtml(fase.nombre)}</div>
-        ${picker}
       </div>`;
   }).join("");
-
   const done = fases.filter(f => phaseStatus(f) === "done").length;
   const inProgress = fases.filter(f => phaseStatus(f) === "in-progress").length;
   const summary = done === fases.length
@@ -4093,7 +4073,6 @@ function renderPhaseTimeline(idea) {
     : inProgress > 0
     ? `${done} done · ${inProgress} in progress · ${fases.length - done - inProgress} pending`
     : `${done} of ${fases.length} phases completed`;
-
   return `
     <div class="detail-block">
       <div class="block-title c-plan"><span class="dot" style="background:var(--accent)"></span>Progress</div>
@@ -4102,17 +4081,45 @@ function renderPhaseTimeline(idea) {
     </div>`;
 }
 
-function togglePhasePicker(ideaId, phaseIdx, event) {
+function togglePhasePicker(event) {
   event.stopPropagation();
+  const item = event.currentTarget;
+  const ideaId = item.dataset.ideaId;
+  const phaseIdx = parseInt(item.dataset.phaseIdx);
   const pickerId = `${ideaId}-${phaseIdx}`;
-  openPhasePickerId = openPhasePickerId === pickerId ? null : pickerId;
-  // Re-render only the detail view, not the full page
-  const idea = IDEAS.find(i => i.id === ideaId);
-  if (idea) {
-    document.getElementById("main").innerHTML = editingIdeaId === idea.id
-      ? renderDetailEditMode(idea)
-      : renderDetailReadMode(idea);
+  const portal = document.getElementById("phase-picker-portal");
+
+  // If this picker is already open, close it
+  if (openPhasePickerId === pickerId) {
+    openPhasePickerId = null;
+    portal.style.display = "none";
+    portal.innerHTML = "";
+    return;
   }
+
+  openPhasePickerId = pickerId;
+  const idea = IDEAS.find(i => i.id === ideaId);
+  if (!idea) return;
+  const status = phaseStatus(idea.fases[phaseIdx]);
+
+  // Position the picker near the clicked node using fixed coordinates
+  const rect = item.getBoundingClientRect();
+  const pickerLeft = Math.min(rect.left + rect.width / 2 - 70, window.innerWidth - 160);
+  const pickerTop = rect.bottom + 6;
+
+  portal.innerHTML = `
+    <div class="phase-status-picker" style="top:${pickerTop}px;left:${pickerLeft}px" onclick="event.stopPropagation()">
+      <button class="phase-status-option ${status === 'pending' ? 'active' : ''}" onclick="setPhaseStatus('${escapeAttr(ideaId)}',${phaseIdx},'pending')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg> Pending
+      </button>
+      <button class="phase-status-option ${status === 'in-progress' ? 'active' : ''}" onclick="setPhaseStatus('${escapeAttr(ideaId)}',${phaseIdx},'in-progress')">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg> In progress
+      </button>
+      <button class="phase-status-option ${status === 'done' ? 'active' : ''}" onclick="setPhaseStatus('${escapeAttr(ideaId)}',${phaseIdx},'done')">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Done
+      </button>
+    </div>`;
+  portal.style.display = "block";
 }
 
 function setPhaseStatus(ideaId, phaseIdx, status) {
@@ -4120,6 +4127,8 @@ function setPhaseStatus(ideaId, phaseIdx, status) {
   if (!idea || !idea.fases[phaseIdx]) return;
   idea.fases[phaseIdx].estado = status;
   openPhasePickerId = null;
+  const portal = document.getElementById("phase-picker-portal");
+  if (portal) { portal.style.display = "none"; portal.innerHTML = ""; }
   saveIdeas();
   document.getElementById("main").innerHTML = renderDetailReadMode(idea);
 }
@@ -4127,13 +4136,9 @@ function setPhaseStatus(ideaId, phaseIdx, status) {
 // Close picker when clicking outside
 document.addEventListener("click", () => {
   if (openPhasePickerId !== null) {
-    const prevId = openPhasePickerId;
     openPhasePickerId = null;
-    const ideaId = prevId.split("-").slice(0, -1).join("-");
-    const idea = IDEAS.find(i => i.id === ideaId);
-    if (idea && !editingIdeaId) {
-      document.getElementById("main").innerHTML = renderDetailReadMode(idea);
-    }
+    const portal = document.getElementById("phase-picker-portal");
+    if (portal) { portal.style.display = "none"; portal.innerHTML = ""; }
   }
 });
 
