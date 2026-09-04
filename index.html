@@ -1145,6 +1145,131 @@ it).
   }
   .phase:last-child { margin-bottom: 0; }
 
+  /* ============ PHASE PROGRESS TIMELINE ============ */
+  .phase-timeline {
+    display: flex;
+    align-items: flex-start;
+    gap: 0;
+    margin-bottom: 24px;
+    overflow-x: auto;
+    padding-bottom: 4px;
+  }
+
+  .phase-timeline-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex: 1;
+    min-width: 64px;
+    cursor: pointer;
+    position: relative;
+  }
+
+  .phase-timeline-connector {
+    position: absolute;
+    top: 12px;
+    left: calc(50% + 12px);
+    right: calc(-50% + 12px);
+    height: 2px;
+    background: var(--line);
+    z-index: 0;
+    transition: background 0.2s;
+  }
+
+  .phase-timeline-connector.done {
+    background: var(--accent);
+  }
+
+  .phase-timeline-node {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 2px solid var(--line-strong);
+    background: var(--panel);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1;
+    position: relative;
+    transition: all 0.2s;
+    flex-shrink: 0;
+  }
+
+  .phase-timeline-item[data-status="done"] .phase-timeline-node {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: var(--paper);
+  }
+
+  .phase-timeline-item[data-status="in-progress"] .phase-timeline-node {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+    box-shadow: 0 0 0 3px var(--accent-soft);
+  }
+
+  .phase-timeline-item[data-status="pending"] .phase-timeline-node {
+    background: var(--panel);
+    border-color: var(--line-strong);
+  }
+
+  .phase-timeline-node svg { display: none; }
+  .phase-timeline-item[data-status="done"] .phase-timeline-node svg { display: block; }
+  .phase-timeline-item[data-status="in-progress"] .phase-timeline-node svg { display: block; }
+
+  .phase-timeline-label {
+    font-size: 0.68rem;
+    font-family: var(--sans);
+    color: var(--slate);
+    margin-top: 6px;
+    text-align: center;
+    line-height: 1.3;
+    max-width: 72px;
+    word-break: break-word;
+  }
+
+  .phase-timeline-item[data-status="done"] .phase-timeline-label { color: var(--accent); font-weight: 600; }
+  .phase-timeline-item[data-status="in-progress"] .phase-timeline-label { color: var(--accent); font-weight: 600; }
+
+  .phase-timeline-item:hover .phase-timeline-node {
+    transform: scale(1.15);
+  }
+
+  /* Status picker popover */
+  .phase-status-picker {
+    position: absolute;
+    top: 36px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    border-radius: 10px;
+    box-shadow: 0 8px 20px rgba(0,0,0,0.12);
+    z-index: 20;
+    padding: 6px;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+    min-width: 130px;
+  }
+
+  .phase-status-option {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 7px 10px;
+    border-radius: 7px;
+    font-size: 0.82rem;
+    cursor: pointer;
+    background: none;
+    border: none;
+    color: var(--ink);
+    text-align: left;
+    width: 100%;
+  }
+
+  .phase-status-option:hover { background: var(--accent-soft); color: var(--accent); }
+  .phase-status-option.active { font-weight: 600; color: var(--accent); }
+
   .phase-head {
     display: flex;
     align-items: center;
@@ -2698,7 +2823,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-04 17:06 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-04 17:14 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3909,6 +4034,109 @@ function renderDetailView(idea) {
   return renderDetailReadMode(idea);
 }
 
+/* ==================================================================
+   PHASE PROGRESS TIMELINE
+   Each phase has an optional "estado" field: "pending" | "in-progress"
+   | "done". Missing estado defaults to "pending".
+   Clicking a node opens a small picker to change the status.
+   Status is saved immediately to Drive in the background.
+================================================================== */
+
+let openPhasePickerId = null; // "ideaId-phaseIdx"
+
+function phaseStatus(fase) {
+  return fase.estado || "pending";
+}
+
+function renderPhaseTimeline(idea) {
+  if (!idea.fases || idea.fases.length === 0) return "";
+  const fases = idea.fases;
+  const items = fases.map((fase, idx) => {
+    const status = phaseStatus(fase);
+    const isLast = idx === fases.length - 1;
+    const connectorDone = !isLast && phaseStatus(fases[idx + 1]) !== "pending" || (!isLast && status === "done");
+    const pickerId = `${idea.id}-${idx}`;
+    const isOpen = openPhasePickerId === pickerId;
+
+    const icon = status === "done"
+      ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg>`
+      : status === "in-progress"
+      ? `<svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="12" cy="12" r="5"/></svg>`
+      : "";
+
+    const picker = isOpen ? `
+      <div class="phase-status-picker" onclick="event.stopPropagation()">
+        <button class="phase-status-option ${status === 'pending' ? 'active' : ''}" onclick="setPhaseStatus('${idea.id}', ${idx}, 'pending')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/></svg> Pending
+        </button>
+        <button class="phase-status-option ${status === 'in-progress' ? 'active' : ''}" onclick="setPhaseStatus('${idea.id}', ${idx}, 'in-progress')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="5"/></svg> In progress
+        </button>
+        <button class="phase-status-option ${status === 'done' ? 'active' : ''}" onclick="setPhaseStatus('${idea.id}', ${idx}, 'done')">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"/></svg> Done
+        </button>
+      </div>` : "";
+
+    return `
+      <div class="phase-timeline-item" data-status="${status}" onclick="togglePhasePicker('${idea.id}', ${idx}, event)">
+        ${!isLast ? `<div class="phase-timeline-connector ${status === 'done' ? 'done' : ''}"></div>` : ""}
+        <div class="phase-timeline-node">${icon}</div>
+        <div class="phase-timeline-label">${escapeHtml(fase.nombre)}</div>
+        ${picker}
+      </div>`;
+  }).join("");
+
+  const done = fases.filter(f => phaseStatus(f) === "done").length;
+  const inProgress = fases.filter(f => phaseStatus(f) === "in-progress").length;
+  const summary = done === fases.length
+    ? "All phases completed ✓"
+    : inProgress > 0
+    ? `${done} done · ${inProgress} in progress · ${fases.length - done - inProgress} pending`
+    : `${done} of ${fases.length} phases completed`;
+
+  return `
+    <div class="detail-block">
+      <div class="block-title c-plan"><span class="dot" style="background:var(--accent)"></span>Progress</div>
+      <div class="phase-timeline">${items}</div>
+      <div style="font-size:0.75rem;color:var(--slate);font-family:var(--mono)">${escapeHtml(summary)}</div>
+    </div>`;
+}
+
+function togglePhasePicker(ideaId, phaseIdx, event) {
+  event.stopPropagation();
+  const pickerId = `${ideaId}-${phaseIdx}`;
+  openPhasePickerId = openPhasePickerId === pickerId ? null : pickerId;
+  // Re-render only the detail view, not the full page
+  const idea = IDEAS.find(i => i.id === ideaId);
+  if (idea) {
+    document.getElementById("main").innerHTML = editingIdeaId === idea.id
+      ? renderDetailEditMode(idea)
+      : renderDetailReadMode(idea);
+  }
+}
+
+function setPhaseStatus(ideaId, phaseIdx, status) {
+  const idea = IDEAS.find(i => i.id === ideaId);
+  if (!idea || !idea.fases[phaseIdx]) return;
+  idea.fases[phaseIdx].estado = status;
+  openPhasePickerId = null;
+  saveIdeas();
+  document.getElementById("main").innerHTML = renderDetailReadMode(idea);
+}
+
+// Close picker when clicking outside
+document.addEventListener("click", () => {
+  if (openPhasePickerId !== null) {
+    const prevId = openPhasePickerId;
+    openPhasePickerId = null;
+    const ideaId = prevId.split("-").slice(0, -1).join("-");
+    const idea = IDEAS.find(i => i.id === ideaId);
+    if (idea && !editingIdeaId) {
+      document.getElementById("main").innerHTML = renderDetailReadMode(idea);
+    }
+  }
+});
+
 function renderDetailReadMode(idea) {
   const cfg = ESTADOS[idea.estado];
 
@@ -3978,6 +4206,8 @@ function renderDetailReadMode(idea) {
         <span class="badge badge-metric" style="border-color:var(--accent);color:var(--accent)">Time ${idea.tiempo ?? '—'}/10</span>
       </div>
     </div>
+
+    ${idea.fases && idea.fases.length > 0 ? renderPhaseTimeline(idea) : ""}
 
     ${fasesHtml}
 
