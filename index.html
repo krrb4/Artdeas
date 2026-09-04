@@ -565,7 +565,7 @@ it).
 
   .changelog-items li {
     font-size: 0.85rem;
-    color: #333;
+    color: var(--ink);
     padding-left: 14px;
     position: relative;
   }
@@ -2698,6 +2698,8 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
+const DEPLOY_TIMESTAMP = "2026-09-04 17:06 UTC"; // auto-updated on each deploy
+
 const CHANGELOG_DATA = [
   {
     version: "0.6.0",
@@ -2826,7 +2828,10 @@ function renderChangelogModal() {
         ${e.items.map(i => `<li>${escapeHtml(i)}</li>`).join("")}
       </ul>
     </div>
-  `).join("");
+  `).join("") + `
+    <div style="margin-top:16px;padding-top:12px;border-top:1px solid var(--line);font-family:var(--mono);font-size:0.68rem;color:var(--slate)">
+      Last deployed: ${escapeHtml(DEPLOY_TIMESTAMP)}
+    </div>`;
 }
 
 /* ==================================================================
