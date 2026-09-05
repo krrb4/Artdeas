@@ -2207,7 +2207,8 @@ it).
       <input class="form-input" id="nid-titulo" required placeholder="E.g: Mirror — Mask Off">
 
       <label class="form-label">Category</label>
-      <input class="form-input" id="nid-categoria" required placeholder="E.g: Short / Instagram Reel">
+      <input class="form-input" id="nid-categoria" required placeholder="E.g: Short / Instagram Reel" list="categoria-suggestions" autocomplete="off">
+      <datalist id="categoria-suggestions"></datalist>
 
       <label class="form-label">Initial status</label>
       <select class="form-input" id="nid-estado">
@@ -2244,14 +2245,14 @@ it).
     <div class="form-hint" style="margin-bottom:12px">Working on: <strong id="evolve-idea-title" style="color:var(--ink)"></strong></div>
 
     <div class="evolve-step">
-      <div class="evolve-step-label"><span class="evolve-step-num">1</span>Send this to an AI</div>
-      <div class="form-hint" style="margin-bottom:10px">Copy the prompt and paste it into any AI chat (Claude, ChatGPT, Gemini, etc.) — it already includes everything this idea has so far.</div>
+      <div class="evolve-step-label"><span class="evolve-step-num">1</span>Send this to any AI</div>
+      <div class="form-hint" style="margin-bottom:10px">Copy the prompt and paste it into any AI (Claude, ChatGPT, Gemini…). The AI will ask you questions one by one to develop the idea. <strong>To stop at any point, just say "stop" or "that's enough"</strong> — the AI will immediately give you the final result without more questions.</div>
       <button class="form-submit" style="margin-top:0" onclick="evolveCopyPrompt()">Copy prompt for AI</button>
     </div>
 
     <div class="evolve-step">
-      <div class="evolve-step-label"><span class="evolve-step-num">2</span>Paste the AI's reply back here</div>
-      <div class="form-hint" style="margin-bottom:10px">When you're done chatting, Claude will give you a JSON block — paste it below to update this idea.</div>
+      <div class="evolve-step-label"><span class="evolve-step-num">2</span>Paste the AI's reply here</div>
+      <div class="form-hint" style="margin-bottom:10px">When done, the AI will give you a JSON block. Paste it below to update this idea.</div>
       <textarea class="form-input form-textarea" id="evolve-textarea" style="min-height:160px;font-family:var(--mono);font-size:0.78rem" placeholder='{"fases": [{"nombre": "...", "pasos": ["..."]}], "cosasAResolver": [{"texto": "...", "resuelto": false}]}'></textarea>
       <button class="form-submit" onclick="submitEvolve()">Update idea</button>
     </div>
@@ -2830,7 +2831,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-05 02:30 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-05 02:36 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3089,7 +3090,15 @@ async function deleteIdea(ideaId) {
 /* ==================================================================
    CREATE IDEA — simple form from the page
 ================================================================== */
+function updateCategoriaSuggestions() {
+  const datalist = document.getElementById("categoria-suggestions");
+  if (!datalist) return;
+  const unique = [...new Set(IDEAS.map(i => i.categoria).filter(Boolean))].sort();
+  datalist.innerHTML = unique.map(c => `<option value="${escapeAttr(c)}">`).join("");
+}
+
 function openNewIdeaForm() {
+  updateCategoriaSuggestions();
   switchNewIdeaMode("manual");
   document.getElementById("new-idea-overlay").classList.add("open");
   document.getElementById("nid-titulo").focus();
@@ -3369,6 +3378,7 @@ let editingIdeaId = null; // id of the idea currently being edited (null = view 
 
 function openEditIdeaModal(ideaId) {
   // "Edit" button on the detail page — switches to inline edit mode
+  updateCategoriaSuggestions();
   editingIdeaId = ideaId;
   openDetail(ideaId); // re-render in edit mode
 }
@@ -3453,55 +3463,64 @@ async function submitImport() {
 function buildEnrichMessage(idea) {
   const fasesArray = Array.isArray(idea.fases) ? idea.fases.filter(f => f.pasos && f.pasos.length) : [];
 
-  let msg = `I want to develop this idea from my Artdeas backlog further. Ask me one question at a time (don't dump a long list of questions at once), and for anything I don't know how to solve, give me a short search hint in English.\n\n`;
-  msg += `TITLE: ${idea.titulo}\n`;
-  msg += `CATEGORY: ${idea.categoria}\n`;
-  msg += `STATUS: ${idea.estado}\n\n`;
-  msg += `CURRENT DESCRIPTION:\n${idea.descripcion}\n\n`;
+  // Use a helper to ensure no curly/typographic quotes sneak in
+  const q = (s) => s.replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"');
 
-  if (idea.notas.length) {
-    msg += `CURRENT NOTES:\n${idea.notas.map(n => "- " + n).join("\n")}\n\n`;
+  let msg = q(`I want to develop this idea from my Artdeas backlog. Ask me ONE question at a time — no lists of questions at once. For anything I don't know how to solve, give me a short English search hint.\n\n`);
+  msg += q(`IMPORTANT FLOW RULES:\n`);
+  msg += q(`- Ask one question, wait for my answer, then ask the next.\n`);
+  msg += q(`- At any point I can say "stop" or "that's enough" and you should immediately skip to giving me the final JSON without asking more questions.\n`);
+  msg += q(`- When we're done (either naturally or because I said stop), output ONLY the raw JSON — no explanation, no backticks, no text before or after it.\n\n`);
+  msg += q(`IDEA:\n`);
+  msg += q(`TITLE: ${idea.titulo}\n`);
+  msg += q(`CATEGORY: ${idea.categoria}\n`);
+  msg += q(`STATUS: ${idea.estado}\n\n`);
+  msg += q(`CURRENT DESCRIPTION:\n${idea.descripcion}\n\n`);
+
+  if (idea.notas && idea.notas.length) {
+    msg += q(`CURRENT NOTES:\n${idea.notas.map(n => "- " + n).join("\n")}\n\n`);
   }
 
   if (fasesArray.length) {
-    msg += `CURRENT PRODUCTION PLAN:\n`;
+    msg += q(`CURRENT PRODUCTION PLAN:\n`);
     fasesArray.forEach(fase => {
-      msg += `${fase.nombre}:\n`;
+      msg += q(`${fase.nombre}:\n`);
       (fase.pasos || []).forEach(step => {
-        msg += "- " + stepText(step) + "\n";
+        msg += q("- " + stepText(step) + "\n");
       });
     });
     msg += "\n";
   } else {
-    msg += `PRODUCTION PLAN: nothing defined yet.\n\n`;
+    msg += q(`PRODUCTION PLAN: nothing defined yet.\n\n`);
   }
 
-  if (idea.cosasAResolver.length) {
-    msg += `CURRENT THINGS TO FIGURE OUT:\n`;
+  if (idea.cosasAResolver && idea.cosasAResolver.length) {
+    msg += q(`CURRENT THINGS TO FIGURE OUT:\n`);
     idea.cosasAResolver.forEach(item => {
-      msg += `- ${item.texto}${item.resuelto ? " (already resolved)" : ""}\n`;
+      msg += q(`- ${item.texto}${item.resuelto ? " (already resolved)" : ""}\n`);
     });
     msg += "\n";
   }
 
-  msg += `Help me expand and flesh out this idea: fill in whatever's missing from the production plan, suggest more things to figure out if it makes sense.\n\n`;
-  msg += `(If you're Claude and you already have access to my Google Drive in this chat, you can also update the "artdeas-data.json" file there directly once we're done — but still give me the JSON below either way, as a record of the changes.)\n\n`;
-  msg += `IMPORTANT: once we're done talking this through, your FINAL reply must be ONLY a single raw JSON object — no explanation before or after it, no markdown code fences, just the JSON itself — with this exact shape, so I can paste it into the "Evolve idea" box on the page:\n`;
-  msg += `{\n`;
-  msg += `  "descripcion": "...",\n`;
-  msg += `  "notas": ["...", "..."],\n`;
-  msg += `  "fases": [\n`;
-  msg += `    { "nombre": "Phase name", "pasos": ["step 1", { "texto": "step 2", "explicacion": "optional clarification" }] },\n`;
-  msg += `    { "nombre": "Another phase", "pasos": ["..."] }\n`;
-  msg += `  ],\n`;
-  msg += `  "cosasAResolver": [\n`;
-  msg += `    { "texto": "...", "resuelto": false, "busqueda": ["search hint 1", "search hint 2"] }\n`;
-  msg += `  ]\n`;
-  msg += `}\n`;
-  msg += `Key rules for the JSON:\n`;
-  msg += `- "fases" is a FREE array — use whatever phase names make sense for this specific idea. Don't use fixed names like "preproduccion" or "filmacion" unless they actually apply. A recipe might have "Ingredients", "Preparation", "Baking". A drawing might have "References", "Sketch", "Final lineart". Use whatever fits.\n`;
-  msg += `- Only include fields that actually changed. For "fases", replace the whole array if you're changing the plan. For "cosasAResolver", new items get ADDED to the existing list (don't repeat items already there). For "notas", replace the whole array.\n`;
-  msg += `- Do not wrap the JSON in triple backticks or add any text around it — just the raw JSON object by itself.`;
+  msg += q(`Help me expand this idea: fill in the production plan, suggest things to figure out.\n\n`);
+  msg += q(`(If you are Claude with Google Drive access in this chat, also update "artdeas-data.json" directly — but still output the JSON below.)\n\n`);
+  msg += q(`FINAL OUTPUT FORMAT — output this and nothing else when done:\n`);
+  msg += '{\n';
+  msg += '  "descripcion": "...",\n';
+  msg += '  "notas": ["...", "..."],\n';
+  msg += '  "fases": [\n';
+  msg += '    { "nombre": "Phase name", "pasos": ["step 1", { "texto": "step 2", "explicacion": "clarification" }] }\n';
+  msg += '  ],\n';
+  msg += '  "cosasAResolver": [\n';
+  msg += '    { "texto": "...", "resuelto": false, "busqueda": ["hint 1"] }\n';
+  msg += '  ]\n';
+  msg += '}\n';
+  msg += q(`RULES:\n`);
+  msg += q(`- Use straight ASCII double quotes " only — never curly quotes like \u201C or \u201D.\n`);
+  msg += q(`- "fases" is a free array — use phase names that make sense for THIS idea (not fixed names like preproduccion/filmacion).\n`);
+  msg += q(`- Only include fields that actually changed.\n`);
+  msg += q(`- For "cosasAResolver": ADD new items, don't repeat existing ones.\n`);
+  msg += q(`- No backticks, no markdown, no explanations — just the raw JSON object.`);
 
   return msg;
 }
@@ -4250,7 +4269,7 @@ function renderDetailEditMode(idea) {
         <select class="form-input" id="ie-estado" style="width:auto;font-size:0.82rem">
           ${Object.keys(ESTADOS).map(k => `<option value="${k}" ${idea.estado === k ? 'selected' : ''}>${ESTADOS[k].label}</option>`).join("")}
         </select>
-        <input class="form-input" id="ie-categoria" value="${escapeAttr(idea.categoria)}" style="width:auto;font-size:0.82rem" placeholder="Category">
+        <input class="form-input" id="ie-categoria" value="${escapeAttr(idea.categoria)}" style="width:auto;font-size:0.82rem" placeholder="Category" list="categoria-suggestions" autocomplete="off">
       </div>
     </div>`;
 
