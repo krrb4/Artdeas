@@ -1737,9 +1737,43 @@ it).
     outline: none;
   }
 
+  /* iOS zooms in on focus when font-size < 16px — prevent that */
+  @media (max-width: 600px) {
+    .form-input, .form-textarea, select.form-input {
+      font-size: 16px !important;
+    }
+  }
+
   .form-input:focus {
     border-color: var(--accent);
   }
+
+  .categoria-dropdown {
+    position: absolute;
+    top: calc(100% + 4px);
+    left: 0;
+    right: 0;
+    background: var(--panel);
+    border: 1px solid var(--line-strong);
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    z-index: 100;
+    overflow: hidden;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .categoria-option {
+    padding: 10px 14px;
+    font-size: 0.86rem;
+    color: var(--ink);
+    cursor: pointer;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .categoria-option:last-child { border-bottom: none; }
+  .categoria-option:hover, .categoria-option:active { background: var(--accent-soft); color: var(--accent); }
+  .categoria-option.new-option { color: var(--accent); font-style: italic; }
 
   .form-textarea {
     min-height: 60px;
@@ -2207,8 +2241,10 @@ it).
       <input class="form-input" id="nid-titulo" required placeholder="E.g: Mirror — Mask Off">
 
       <label class="form-label">Category</label>
-      <input class="form-input" id="nid-categoria" required placeholder="E.g: Short / Instagram Reel" list="categoria-suggestions" autocomplete="off">
-      <datalist id="categoria-suggestions"></datalist>
+      <div class="categoria-wrap" style="position:relative">
+        <input class="form-input" id="nid-categoria" required placeholder="E.g: Short / Instagram Reel" autocomplete="off" oninput="showCategoriaSuggestions('nid-categoria')" onfocus="showCategoriaSuggestions('nid-categoria')" onblur="hideCategoriaSuggestions(event)">
+        <div class="categoria-dropdown" id="nid-categoria-dropdown" style="display:none"></div>
+      </div>
 
       <label class="form-label">Initial status</label>
       <select class="form-input" id="nid-estado">
@@ -2831,7 +2867,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-05 02:36 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-05 02:47 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3090,12 +3126,49 @@ async function deleteIdea(ideaId) {
 /* ==================================================================
    CREATE IDEA — simple form from the page
 ================================================================== */
-function updateCategoriaSuggestions() {
-  const datalist = document.getElementById("categoria-suggestions");
-  if (!datalist) return;
-  const unique = [...new Set(IDEAS.map(i => i.categoria).filter(Boolean))].sort();
-  datalist.innerHTML = unique.map(c => `<option value="${escapeAttr(c)}">`).join("");
+function getExistingCategories() {
+  return [...new Set(IDEAS.map(i => i.categoria).filter(Boolean))].sort();
 }
+
+function showCategoriaSuggestions(inputId) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(inputId + "-dropdown");
+  if (!input || !dropdown) return;
+  const val = input.value.trim().toLowerCase();
+  const all = getExistingCategories();
+  const filtered = val ? all.filter(c => c.toLowerCase().includes(val)) : all;
+
+  if (filtered.length === 0 && !val) { dropdown.style.display = "none"; return; }
+
+  let html = filtered.map(c =>
+    `<div class="categoria-option" onmousedown="pickCategoria('${inputId}','${escapeAttr(c)}')">${escapeHtml(c)}</div>`
+  ).join("");
+
+  // Show "use this new category" if typed something not in the list
+  if (val && !all.find(c => c.toLowerCase() === val)) {
+    html += `<div class="categoria-option new-option" onmousedown="pickCategoria('${inputId}','${escapeAttr(input.value.trim())}')">${escapeHtml(input.value.trim())} <span style="opacity:0.6;font-size:0.78rem">— use this</span></div>`;
+  }
+
+  dropdown.innerHTML = html;
+  dropdown.style.display = filtered.length > 0 || val ? "block" : "none";
+}
+
+function pickCategoria(inputId, value) {
+  const input = document.getElementById(inputId);
+  const dropdown = document.getElementById(inputId + "-dropdown");
+  if (input) input.value = value;
+  if (dropdown) dropdown.style.display = "none";
+}
+
+function hideCategoriaSuggestions(event) {
+  // Use timeout so onmousedown on option fires before blur hides the dropdown
+  setTimeout(() => {
+    const dropdowns = document.querySelectorAll(".categoria-dropdown");
+    dropdowns.forEach(d => d.style.display = "none");
+  }, 150);
+}
+
+function updateCategoriaSuggestions() {} // kept for compatibility, no longer needed
 
 function openNewIdeaForm() {
   updateCategoriaSuggestions();
@@ -3336,9 +3409,14 @@ function ieDeleteStep(faseIdx, stepIdx) {
 // Strip markdown code fences if the user pasted ```json ... ``` from an AI response.
 // Also handles triple backticks without a language tag.
 function stripJsonFences(str) {
-  return str.trim()
-    .replace(/^```(?:json)?\s*/i, "")
-    .replace(/\s*```$/, "")
+  return str
+    .replace(/^\uFEFF/, '')           // BOM
+    .replace(/[\u200B-\u200D\uFEFF]/g, '') // zero-width chars
+    .replace(/[\u201C\u201D]/g, '"')  // curly double quotes → straight
+    .replace(/[\u2018\u2019]/g, "'")  // curly single quotes → straight
+    .trim()
+    .replace(/^```(?:json)?\s*/i, '') // opening fence with or without "json"
+    .replace(/\s*```$/, '')           // closing fence
     .trim();
 }
 
@@ -4269,7 +4347,10 @@ function renderDetailEditMode(idea) {
         <select class="form-input" id="ie-estado" style="width:auto;font-size:0.82rem">
           ${Object.keys(ESTADOS).map(k => `<option value="${k}" ${idea.estado === k ? 'selected' : ''}>${ESTADOS[k].label}</option>`).join("")}
         </select>
-        <input class="form-input" id="ie-categoria" value="${escapeAttr(idea.categoria)}" style="width:auto;font-size:0.82rem" placeholder="Category" list="categoria-suggestions" autocomplete="off">
+        <div class="categoria-wrap" style="position:relative;width:auto">
+          <input class="form-input" id="ie-categoria" value="${escapeAttr(idea.categoria)}" style="width:auto;font-size:0.82rem" placeholder="Category" autocomplete="off" oninput="showCategoriaSuggestions('ie-categoria')" onfocus="showCategoriaSuggestions('ie-categoria')" onblur="hideCategoriaSuggestions(event)">
+          <div class="categoria-dropdown" id="ie-categoria-dropdown" style="display:none"></div>
+        </div>
       </div>
     </div>`;
 
