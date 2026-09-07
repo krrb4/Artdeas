@@ -1219,11 +1219,24 @@ it).
     }
     .detail-top-row > div {
       flex-direction: column;
+      align-items: stretch;
     }
     .complete-info-btn {
       width: 100%;
       text-align: center;
       padding: 10px 14px;
+    }
+    .idea-delete-btn {
+      width: 100%;
+      text-align: center;
+      padding: 10px 14px;
+      box-sizing: border-box;
+    }
+    .detail-title {
+      font-size: 1.5rem;
+    }
+    .phase-timeline {
+      gap: 0;
     }
   }
 
@@ -1345,6 +1358,15 @@ it).
     position: relative;
     padding: 4px 2px 0;
     overflow: visible;
+  }
+
+  @media (max-width: 600px) {
+    .phase-timeline-item {
+      min-width: 60px;
+    }
+    .phase-timeline-label {
+      font-size: 0.6rem;
+    }
   }
 
   .phase-timeline-connector {
@@ -3215,7 +3237,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 18:29 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 18:35 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
