@@ -528,39 +528,42 @@ it).
     }
   }
 
-  /* ============ HOW IT WORKS MODAL ============ */
-  .howto-step {
+  /* ============ HOW IT WORKS MODAL — card grid ============ */
+  .howto-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    padding-top: 4px;
+  }
+
+  @media (max-width: 480px) {
+    .howto-grid { grid-template-columns: 1fr; }
+  }
+
+  .howto-card {
+    background: var(--accent-soft);
+    border-radius: 10px;
+    padding: 14px;
     display: flex;
-    gap: 14px;
-    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
   }
 
-  .howto-step-icon {
-    font-size: 1.5rem;
-    flex-shrink: 0;
-    width: 36px;
-    text-align: center;
-    line-height: 1;
-    margin-top: 2px;
-  }
+  .howto-card-icon { font-size: 1.4rem; line-height: 1; }
 
-  .howto-step-title {
-    font-weight: 600;
-    font-size: 0.92rem;
+  .howto-card-title {
+    font-weight: 700;
+    font-size: 0.88rem;
     color: var(--ink);
-    margin-bottom: 4px;
   }
 
-  .howto-step-desc {
-    font-size: 0.83rem;
+  .howto-card-desc {
+    font-size: 0.78rem;
     color: var(--slate);
-    line-height: 1.55;
+    line-height: 1.5;
   }
 
-  .howto-step-desc strong {
-    color: var(--ink);
-    font-weight: 600;
-  }
+  .howto-card-desc strong { color: var(--ink); }
 
   .changelog-entry {
     margin-bottom: 18px;
@@ -805,50 +808,58 @@ it).
   }
 
   .home-howto-strip {
-    max-width: 460px;
-    margin: 28px auto 0;
     display: flex;
-    flex-direction: column;
-    gap: 10px;
-    padding: 16px 18px;
-    border-radius: 12px;
+    align-items: center;
+    gap: 6px;
+    max-width: 460px;
+    margin: 16px auto 0;
+    padding: 10px 14px;
+    border-radius: 10px;
     background: var(--accent-soft);
     border: 1px solid var(--line);
+    flex-wrap: wrap;
+    justify-content: center;
   }
 
   .home-howto-item {
     display: flex;
-    align-items: flex-start;
-    gap: 10px;
-    font-size: 0.83rem;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.78rem;
     color: var(--slate);
-    line-height: 1.45;
+    white-space: nowrap;
   }
 
-  .home-howto-icon {
-    font-size: 1rem;
+  .home-howto-icon { font-size: 0.9rem; }
+
+  .home-howto-item strong { color: var(--ink); font-weight: 600; }
+
+  .home-howto-divider {
+    width: 1px;
+    height: 14px;
+    background: var(--line-strong);
     flex-shrink: 0;
-    width: 20px;
-    text-align: center;
-  }
-
-  .home-howto-item strong {
-    color: var(--ink);
   }
 
   .home-howto-more {
-    align-self: flex-end;
     background: none;
-    border: none;
-    font-size: 0.8rem;
+    border: 1px solid var(--accent);
+    border-radius: 50%;
+    width: 22px;
+    height: 22px;
+    font-size: 0.72rem;
     color: var(--accent);
     cursor: pointer;
     font-family: var(--sans);
-    padding: 0;
-    margin-top: 2px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-left: 4px;
   }
 
-  .home-howto-more:hover { text-decoration: underline; }
+  .home-howto-more:hover { background: var(--accent); color: var(--paper); }
 
   @media (max-width: 600px) {
     .home-hero { padding: 16px 0 24px; }
@@ -2319,7 +2330,10 @@ it).
 
     <div class="nav-section">
       <button class="sidebar-action-btn primary" onclick="openNewIdeaForm()">+ New idea</button>
-      <button class="sidebar-action-btn" onclick="exportBackup()">Backup your ideas</button>
+      <div style="display:flex;gap:8px">
+        <button class="sidebar-action-btn" style="flex:1" onclick="openBackupImport()">Backup / Import</button>
+        <button class="sidebar-action-btn" style="flex:0;padding:8px 12px" onclick="openHowto()" title="How it works">?</button>
+      </div>
     </div>
 
     <div class="nav-section">
@@ -2327,11 +2341,7 @@ it).
       <div id="nav-categorias"></div>
     </div>
 
-    <div style="display:flex;gap:10px;align-items:center;justify-content:center">
-      <div class="version-link" style="margin-top:0;padding-top:0" onclick="openChangelog()">v0.6.0 · What's new</div>
-      <span style="color:var(--line-strong)">·</span>
-      <div class="version-link" style="margin-top:0;padding-top:0" onclick="openHowto()">How it works</div>
-    </div>
+    <div class="version-link" onclick="openChangelog()">v0.6.0 · What's new</div>
   </aside>
 
   <main class="main" id="main"></main>
@@ -2476,55 +2486,62 @@ it).
   </div>
 </div>
 
+<!-- MODAL: Backup / Import -->
+<div class="modal-overlay" id="backup-import-overlay">
+  <div class="modal-box" style="max-width:440px">
+    <div class="modal-head">
+      <div class="modal-title">Backup / Import</div>
+      <button class="modal-close" onclick="closeBackupImport()">&times;</button>
+    </div>
+
+    <div class="backup-import-tabs">
+      <button class="new-idea-tab active" id="bi-tab-backup" onclick="switchBiTab('backup')">Backup</button>
+      <button class="new-idea-tab" id="bi-tab-import" onclick="switchBiTab('import')">Import</button>
+    </div>
+
+    <!-- Backup panel -->
+    <div id="bi-panel-backup">
+      <p class="form-hint" style="margin-bottom:16px">Download all your ideas as a JSON file. You can use it to restore your backlog later, or import it on another device.</p>
+      <button class="form-submit" onclick="exportBackup()">Download backup (.json)</button>
+    </div>
+
+    <!-- Import panel -->
+    <div id="bi-panel-import" style="display:none">
+      <p class="form-hint" style="margin-bottom:12px">Paste a backup file's contents below to restore or merge ideas. This adds ideas to your current backlog — it won't delete anything.</p>
+      <textarea class="form-input form-textarea" id="bi-import-textarea" style="min-height:180px;font-family:var(--mono);font-size:0.78rem" placeholder='[{"titulo": "My idea", ...}]'></textarea>
+      <button class="form-submit" onclick="submitBiImport()">Import ideas</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL: How it works (onboarding) -->
 <div class="modal-overlay" id="howto-overlay">
-  <div class="modal-box" style="max-width:500px">
+  <div class="modal-box" style="max-width:560px">
     <div class="modal-head">
       <div class="modal-title">How Artdeas works</div>
       <button class="modal-close" onclick="closeHowto()">&times;</button>
     </div>
-    <div style="display:flex;flex-direction:column;gap:20px;padding-top:4px">
-
-      <div class="howto-step">
-        <div class="howto-step-icon">💡</div>
-        <div>
-          <div class="howto-step-title">Capture your ideas</div>
-          <div class="howto-step-desc">Tap <strong>+</strong> to add any idea — a short film, a drawing, a recipe, anything. Give it a title, a category, and a quick description. Don't overthink it.</div>
-        </div>
+    <div class="howto-grid">
+      <div class="howto-card">
+        <div class="howto-card-icon">💡</div>
+        <div class="howto-card-title">Capture</div>
+        <div class="howto-card-desc">Tap <strong>+</strong> to add any idea — film, drawing, recipe, anything.</div>
       </div>
-
-      <div class="howto-step">
-        <div class="howto-step-icon">🤖</div>
-        <div>
-          <div class="howto-step-title">Develop it with AI</div>
-          <div class="howto-step-desc">Open any idea and tap <strong>Develop idea</strong>. Copy the prompt it generates and paste it into any AI (ChatGPT, Claude, Gemini…). The AI will ask you questions one by one to build out a production plan. When you're done — or if you say <strong>"stop"</strong> — paste the result back to update your idea automatically.</div>
-        </div>
+      <div class="howto-card">
+        <div class="howto-card-icon">🤖</div>
+        <div class="howto-card-title">Develop with AI</div>
+        <div class="howto-card-desc">Tap <strong>Develop idea</strong>, copy the prompt, paste it in any AI. Say <strong>"stop"</strong> to finish early.</div>
       </div>
-
-      <div class="howto-step">
-        <div class="howto-step-icon">📋</div>
-        <div>
-          <div class="howto-step-title">Track your progress</div>
-          <div class="howto-step-desc">Each idea has a <strong>Progress</strong> timeline where you can mark phases as Pending, In progress, or Done. Use <strong>Things to figure out</strong> to track open questions, and check them off as you solve them.</div>
-        </div>
+      <div class="howto-card">
+        <div class="howto-card-icon">✅</div>
+        <div class="howto-card-title">Track progress</div>
+        <div class="howto-card-desc">Mark phases as done, check off things to figure out as you go.</div>
       </div>
-
-      <div class="howto-step">
-        <div class="howto-step-icon">☁️</div>
-        <div>
-          <div class="howto-step-title">Sync across devices</div>
-          <div class="howto-step-desc">Connect Google Drive from the sidebar to keep your ideas synced across all your devices. Your data lives in a file in <em>your</em> Drive — Artdeas never stores anything on its own servers.</div>
-        </div>
+      <div class="howto-card">
+        <div class="howto-card-icon">☁️</div>
+        <div class="howto-card-title">Sync</div>
+        <div class="howto-card-desc">Connect Google Drive to keep ideas on all your devices.</div>
       </div>
-
-      <div class="howto-step">
-        <div class="howto-step-icon">📥</div>
-        <div>
-          <div class="howto-step-title">Import ideas from AI</div>
-          <div class="howto-step-desc">Tap <strong>+</strong> and switch to the <strong>Import from AI</strong> tab to paste a full idea built in a chat — title, plan, and all.</div>
-        </div>
-      </div>
-
     </div>
     <button class="form-submit" style="margin-top:20px" onclick="closeHowto()">Got it</button>
   </div>
@@ -3057,7 +3074,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 15:50 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 16:06 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3161,6 +3178,56 @@ function resolveDialog(value) {
 }
 
 const HOWTO_SEEN_KEY = "artdeas_howto_seen_v1";
+
+function openBackupImport() {
+  document.getElementById("backup-import-overlay").classList.add("open");
+  switchBiTab("backup");
+}
+
+function closeBackupImport() {
+  document.getElementById("backup-import-overlay").classList.remove("open");
+}
+
+function switchBiTab(tab) {
+  ["backup", "import"].forEach(t => {
+    document.getElementById("bi-tab-" + t).classList.toggle("active", t === tab);
+    document.getElementById("bi-panel-" + t).style.display = t === tab ? "" : "none";
+  });
+}
+
+async function submitBiImport() {
+  const raw = stripJsonFences(document.getElementById("bi-import-textarea").value);
+  if (!raw) return;
+  let parsed;
+  try {
+    parsed = JSON.parse(raw);
+  } catch (e) {
+    await showAlert("That's not valid JSON. Make sure you're pasting the contents of a backup file.", { title: "Invalid JSON" });
+    return;
+  }
+  const items = Array.isArray(parsed) ? parsed : [parsed];
+  let count = 0;
+  items.forEach(item => {
+    if (!item.titulo) return;
+    if (!item.id) item.id = slugify(item.titulo);
+    if (IDEAS.some(i => i.id === item.id)) item.id = item.id + "-" + Date.now();
+    item.categoria = item.categoria || "No category";
+    item.estado = item.estado || "idea";
+    item.dificultad = item.dificultad ?? null;
+    item.tiempo = item.tiempo ?? null;
+    item.descripcion = item.descripcion || "";
+    item.notas = item.notas || [];
+    item.fases = item.fases || [];
+    migrateFasesIfNeeded(item);
+    item.cosasAResolver = item.cosasAResolver || [];
+    IDEAS.push(item);
+    count++;
+  });
+  saveIdeas();
+  closeBackupImport();
+  await showAlert(count === 1 ? "1 idea imported." : `${count} ideas imported.`, { title: "Done" });
+  goHome();
+}
 
 function openHowto() {
   document.getElementById("howto-overlay").classList.add("open");
@@ -4289,17 +4356,19 @@ function renderHomeView() {
       <div class="home-howto-strip">
         <div class="home-howto-item">
           <span class="home-howto-icon">💡</span>
-          <span>Tap <strong>+</strong> to capture any idea</span>
+          <span><strong>+</strong> to capture</span>
         </div>
+        <div class="home-howto-divider"></div>
         <div class="home-howto-item">
           <span class="home-howto-icon">🤖</span>
-          <span>Open an idea → <strong>Develop idea</strong> to build a plan with AI</span>
+          <span><strong>Develop</strong> with AI</span>
         </div>
+        <div class="home-howto-divider"></div>
         <div class="home-howto-item">
           <span class="home-howto-icon">✅</span>
-          <span>Mark phases as done as you go</span>
+          <span>Track <strong>progress</strong></span>
         </div>
-        <button class="home-howto-more" onclick="openHowto()">How it works →</button>
+        <button class="home-howto-more" onclick="openHowto()">?</button>
       </div>
     `}</div>
   `;
