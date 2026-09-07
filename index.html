@@ -383,6 +383,7 @@ it).
     display: grid;
     grid-template-columns: 260px 1fr;
     min-height: 100vh;
+    overflow-x: hidden;
   }
 
   @media (max-width: 860px) {
@@ -1235,9 +1236,18 @@ it).
     .detail-title {
       font-size: 1.4rem;
     }
-    /* Detail blocks: less padding on mobile */
+    /* Detail blocks: less padding on mobile, contain overflow */
     .detail-block {
       padding: 16px 14px;
+      overflow: hidden;
+    }
+    .phase-timeline {
+      overflow-x: auto;
+      margin-left: -14px;
+      margin-right: -14px;
+      padding-left: 14px;
+      padding-right: 14px;
+      width: calc(100% + 28px);
     }
     /* Phase steps: reduce margin-left so they don't overflow */
     .phase-steps {
@@ -1377,6 +1387,8 @@ it).
     padding: 6px 2px 8px;
     width: 100%;
     box-sizing: border-box;
+    /* Prevent iOS from propagating horizontal scroll to the viewport */
+    -webkit-overflow-scrolling: touch;
   }
 
   .phase-timeline-item {
@@ -3268,7 +3280,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 18:52 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 22:34 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
