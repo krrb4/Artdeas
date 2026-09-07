@@ -899,12 +899,60 @@ it).
     display: grid;
     grid-template-columns: repeat(5, 1fr);
     gap: 12px;
+  }
+
+  /* Wrapper que pone la grilla de estados y la card de howto en una misma fila */
+  .status-grid-row {
+    display: flex;
+    align-items: stretch;
+    gap: 0;
     margin-bottom: 36px;
   }
 
+  .status-grid-row .status-grid {
+    flex: 1;
+    margin-bottom: 0;
+  }
+
+  .status-howto-divider {
+    width: 1px;
+    background: var(--line-strong);
+    margin: 0 14px;
+    flex-shrink: 0;
+  }
+
+  .howto-status-card {
+    width: 180px;
+    flex-shrink: 0;
+    background: var(--panel);
+    border: 1px solid var(--line);
+    border-top: 3px solid var(--accent);
+    border-radius: 12px;
+    padding: 16px 18px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .howto-status-card:hover {
+    border-color: var(--accent);
+  }
+
   @media (max-width: 860px) {
+    .status-grid-row {
+      flex-direction: column;
+    }
     .status-grid {
       grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    }
+    .status-howto-divider {
+      width: auto;
+      height: 1px;
+      margin: 8px 0;
+    }
+    .howto-status-card {
+      width: auto;
     }
   }
 
@@ -2325,11 +2373,11 @@ it).
     </div>
 
     <div class="nav-section">
-      <button class="sidebar-action-btn primary" onclick="openNewIdeaForm()">+ New idea</button>
       <div style="display:flex;gap:8px">
-        <button class="sidebar-action-btn" style="flex:1" onclick="openBackupImport()">Backup / Import your ideas</button>
+        <button class="sidebar-action-btn primary" style="flex:1" onclick="openNewIdeaForm()">+ New idea</button>
         <button class="sidebar-action-btn" style="flex:0;padding:8px 12px" onclick="openHowto()" title="How it works">?</button>
       </div>
+      <button class="sidebar-action-btn" onclick="openBackupImport()">Backup / Import your ideas</button>
     </div>
 
     <div class="nav-section">
@@ -2495,20 +2543,21 @@ it).
       <button class="new-idea-tab" id="bi-tab-import" onclick="switchBiTab('import')">Import</button>
     </div>
 
-    <!-- Fixed-height container so switching tabs doesn't resize the modal -->
-    <div style="min-height:260px;display:flex;flex-direction:column;justify-content:space-between">
-      <!-- Backup panel -->
-      <div id="bi-panel-backup">
-        <p class="form-hint" style="margin-bottom:16px">Download all your ideas as a JSON file. You can use it to restore your backlog later, or import it on another device.</p>
-        <button class="form-submit" onclick="exportBackup()">Download backup (.json)</button>
+    <!-- Both panels have the same fixed height so the modal doesn't resize -->
+    <!-- Backup panel -->
+    <div id="bi-panel-backup" style="min-height:240px;display:flex;flex-direction:column">
+      <p class="form-hint" style="margin-bottom:12px">Download all your ideas as a JSON file. You can use it to restore your backlog later, or import it on another device.</p>
+      <div style="flex:1;min-height:150px;background:var(--accent-soft);border-radius:8px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center">
+        <span style="font-size:2rem">📦</span>
       </div>
+      <button class="form-submit" style="margin-top:10px" onclick="exportBackup()">Download backup (.json)</button>
+    </div>
 
-      <!-- Import panel -->
-      <div id="bi-panel-import" style="display:none;flex:1;display:none;flex-direction:column">
-        <p class="form-hint" style="margin-bottom:12px">Paste a backup file's contents below to restore or merge ideas. This adds ideas to your current backlog — it won't delete anything.</p>
-        <textarea class="form-input form-textarea" id="bi-import-textarea" style="flex:1;min-height:150px;font-family:var(--mono);font-size:0.78rem" placeholder='[{"titulo": "My idea", ...}]'></textarea>
-        <button class="form-submit" style="margin-top:10px" onclick="submitBiImport()">Import ideas</button>
-      </div>
+    <!-- Import panel -->
+    <div id="bi-panel-import" style="min-height:240px;display:none;flex-direction:column">
+      <p class="form-hint" style="margin-bottom:12px">Paste a backup file's contents below to restore or merge ideas. This adds ideas to your current backlog — it won't delete anything.</p>
+      <textarea class="form-input form-textarea" id="bi-import-textarea" style="flex:1;min-height:150px;font-family:var(--mono);font-size:0.78rem" placeholder='[{"titulo": "My idea", ...}]'></textarea>
+      <button class="form-submit" style="margin-top:10px" onclick="submitBiImport()">Import ideas</button>
     </div>
   </div>
 </div>
@@ -3076,7 +3125,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 16:15 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 16:21 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3193,7 +3242,7 @@ function closeBackupImport() {
 function switchBiTab(tab) {
   ["backup", "import"].forEach(t => {
     document.getElementById("bi-tab-" + t).classList.toggle("active", t === tab);
-    document.getElementById("bi-panel-" + t).style.display = t === tab ? "" : "none";
+    document.getElementById("bi-panel-" + t).style.display = t === tab ? "flex" : "none";
   });
 }
 
@@ -4184,7 +4233,7 @@ function onSearchInput(e) {
     if (area) {
       const statusCardsHtml = renderStatusCardsOnly();
       area.innerHTML = currentSearch ? renderSearchResults(currentSearch) : `
-        <div class="status-grid">${statusCardsHtml}</div>
+        ${statusCardsHtml}
         <button class="home-create-btn" onclick="openNewIdeaForm()">
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
           Create new idea
@@ -4322,7 +4371,7 @@ function renderStatusCardsOnly() {
   }).join("");
 
   const howtoCard = `
-    <div class="status-card howto-status-card" onclick="openHowto()">
+    <div class="howto-status-card" onclick="openHowto()">
       <div class="howto-status-title">How it works</div>
       <div class="howto-status-items">
         <div class="howto-status-item"><span>💡</span> Tap <strong>+</strong> to capture any idea</div>
@@ -4333,7 +4382,12 @@ function renderStatusCardsOnly() {
       <div class="howto-status-cta">Learn more →</div>
     </div>`;
 
-  return statusCards + howtoCard;
+  return `
+    <div class="status-grid-row">
+      <div class="status-grid">${statusCards}</div>
+      <div class="status-howto-divider"></div>
+      ${howtoCard}
+    </div>`;
 }
 
 function renderHomeView() {
@@ -4363,7 +4417,7 @@ function renderHomeView() {
     </div>
 
     <div id="home-results-area">${currentSearch ? resultsHtml : `
-      <div class="status-grid">${statusCardsHtml}</div>
+      ${statusCardsHtml}
       <button class="home-create-btn" onclick="openNewIdeaForm()">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Create new idea
