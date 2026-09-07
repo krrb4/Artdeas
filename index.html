@@ -532,44 +532,51 @@ it).
   .howto-row {
     display: flex;
     align-items: flex-start;
-    gap: 8px;
-    overflow-x: auto;
+    gap: 10px;
     padding-bottom: 4px;
+    /* No overflow-x: auto — el modal es suficientemente ancho */
   }
 
   .howto-arrow {
     color: var(--slate);
     font-size: 1.1rem;
     flex-shrink: 0;
-    margin-top: 18px;
+    margin-top: 20px;
   }
 
   .howto-card {
     background: var(--accent-soft);
     border-radius: 10px;
-    padding: 14px;
+    padding: 16px;
     display: flex;
     flex-direction: column;
-    gap: 6px;
-    min-width: 120px;
+    gap: 8px;
     flex: 1;
+    min-width: 0;
   }
 
-  .howto-card-icon { font-size: 1.4rem; line-height: 1; }
+  .howto-card-icon { font-size: 1.6rem; line-height: 1; }
 
   .howto-card-title {
     font-weight: 700;
-    font-size: 0.86rem;
+    font-size: 0.9rem;
     color: var(--ink);
   }
 
   .howto-card-desc {
-    font-size: 0.76rem;
+    font-size: 0.8rem;
     color: var(--slate);
-    line-height: 1.5;
+    line-height: 1.55;
   }
 
   .howto-card-desc strong { color: var(--ink); }
+
+  @media (max-width: 600px) {
+    .howto-row {
+      flex-direction: column;
+    }
+    .howto-arrow { display: none; }
+  }
 
   .changelog-entry {
     margin-bottom: 18px;
@@ -724,7 +731,7 @@ it).
   /* ============ MAIN ============ */
   .main {
     padding: 36px 40px 80px;
-    max-width: 980px;
+    max-width: 1400px;
     width: 100%;
     margin: 0 auto;
   }
@@ -924,7 +931,9 @@ it).
   }
 
   .howto-status-card {
-    width: 220px;
+    flex: 1;
+    min-width: 160px;
+    max-width: none;
     flex-shrink: 0;
     background: var(--panel);
     border: 1px solid var(--line);
@@ -942,7 +951,7 @@ it).
   }
 
   @media (max-width: 1000px) {
-    .howto-status-card { width: 190px; }
+    .howto-status-card { min-width: 140px; }
   }
 
   @media (max-width: 860px) {
@@ -1762,6 +1771,10 @@ it).
     font-weight: 700;
     color: var(--accent);
     border-color: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-bottom: 0;
   }
 
   .sidebar-help-btn:hover {
@@ -2396,8 +2409,8 @@ it).
     </div>
 
     <div class="nav-section">
-      <div style="display:flex;gap:8px">
-        <button class="sidebar-action-btn primary" style="flex:1" onclick="openNewIdeaForm()">+ New idea</button>
+      <div style="display:flex;gap:8px;align-items:stretch">
+        <button class="sidebar-action-btn primary" style="flex:1;margin-bottom:0" onclick="openNewIdeaForm()">+ New idea</button>
         <button class="sidebar-action-btn sidebar-help-btn" onclick="openHowto()" title="How it works">?</button>
       </div>
       <button class="sidebar-action-btn" onclick="openBackupImport()">Backup / Import your ideas</button>
@@ -2585,7 +2598,7 @@ it).
 
 <!-- MODAL: How it works (onboarding) -->
 <div class="modal-overlay" id="howto-overlay">
-  <div class="modal-box" style="max-width:600px">
+  <div class="modal-box" style="max-width:780px">
     <div class="modal-head">
       <div class="modal-title">How Artdeas works</div>
       <button class="modal-close" onclick="closeHowto()">&times;</button>
@@ -2822,6 +2835,7 @@ async function driveFindDataFile() {
   const res = await fetch(`https://www.googleapis.com/drive/v3/files?q=${q}&fields=files(id,name,modifiedTime)`, {
     headers: { Authorization: `Bearer ${accessToken}` }
   });
+  if (res.status === 401) { handleDriveAuthExpired(); throw new Error("Session expired"); }
   if (!res.ok) throw new Error("Error buscando archivo en Drive: " + res.status);
   const data = await res.json();
   return data.files && data.files.length ? data.files[0] : null;
@@ -2914,6 +2928,25 @@ async function initDriveSync(ideasParaCrearSiNoExiste) {
     console.error("Could not sync with Drive:", e);
     setSyncStatus("Could not connect to Google Drive. Working in local mode.", true);
   }
+}
+
+function handleDriveAuthExpired() {
+  // Token expired mid-session — clear everything so Drive ideas
+  // don't stay on screen as if they were local.
+  driveReady = false;
+  driveFileId = null;
+  accessToken = null;
+  currentUserEmail = null;
+  if (STORAGE_OK) {
+    try {
+      localStorage.removeItem(TOKEN_STORAGE_KEY);
+      localStorage.removeItem(STORAGE_KEY);
+    } catch(e) {}
+  }
+  IDEAS = [];
+  updateDriveButtonUI();
+  setSyncStatus("Session expired. Please reconnect Google Drive.", true);
+  render();
 }
 
 function setSyncStatus(msg, isWarning) {
@@ -3146,7 +3179,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 16:49 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 17:09 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
