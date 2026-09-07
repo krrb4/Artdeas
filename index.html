@@ -1233,10 +1233,39 @@ it).
       box-sizing: border-box;
     }
     .detail-title {
-      font-size: 1.5rem;
+      font-size: 1.4rem;
     }
-    .phase-timeline {
-      gap: 0;
+    /* Detail blocks: less padding on mobile */
+    .detail-block {
+      padding: 16px 14px;
+    }
+    /* Phase steps: reduce margin-left so they don't overflow */
+    .phase-steps {
+      margin-left: 12px;
+      padding-left: 10px;
+    }
+    /* Phase head: smaller number badge */
+    .phase-head {
+      gap: 8px;
+    }
+    /* Phase timeline: smaller nodes */
+    .phase-timeline-item {
+      min-width: 56px;
+    }
+    .phase-timeline-label {
+      font-size: 0.58rem;
+    }
+    /* Resolve list items: wrap properly */
+    .resolve-item {
+      flex-wrap: wrap;
+    }
+    /* Badges: allow wrapping */
+    .detail-badges {
+      gap: 6px;
+    }
+    .badge {
+      font-size: 0.66rem;
+      padding: 4px 8px;
     }
   }
 
@@ -1345,7 +1374,9 @@ it).
     margin-bottom: 24px;
     overflow-x: auto;
     overflow-y: visible;
-    padding: 6px 2px 8px; /* padding top/bottom para que el scale del hover no se corte */
+    padding: 6px 2px 8px;
+    width: 100%;
+    box-sizing: border-box;
   }
 
   .phase-timeline-item {
@@ -3237,7 +3268,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 18:35 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 18:52 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
