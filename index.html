@@ -928,8 +928,8 @@ it).
   }
 
   .howto-status-card {
-    width: 400px;
-    flex-shrink: 0;
+    flex: 0 1 400px; /* empieza en 400px pero puede achicarse */
+    min-width: 200px;
     background: var(--panel);
     border: 1px solid var(--line);
     border-top: 3px solid var(--accent);
@@ -945,14 +945,8 @@ it).
     border-color: var(--accent);
   }
 
-  @media (max-width: 1200px) {
-    .howto-status-card { width: 280px; }
-  }
-
   @media (max-width: 860px) {
-    .status-grid-row {
-      flex-direction: column;
-    }
+    .status-grid-row { flex-direction: column; }
     .status-grid {
       grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       flex: none;
@@ -965,7 +959,9 @@ it).
       align-self: auto;
     }
     .howto-status-card {
+      flex: none;
       width: auto;
+      min-width: 0;
     }
   }
 
@@ -2985,6 +2981,12 @@ async function connectGoogleDrive() {
     );
     if (!confirmado) return;
   }
+  // Clear local anonymous ideas from localStorage — Drive is now the
+  // source of truth. After this, disconnecting will show an empty state,
+  // not the old local ideas.
+  if (STORAGE_OK) {
+    try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+  }
   setSyncStatus("Connecting to Google Drive...", false);
   initDriveSync(IDEAS); // if the account is new, this is offered as the seed
 }
@@ -3174,7 +3176,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 17:30 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 17:35 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
