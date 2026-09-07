@@ -928,7 +928,7 @@ it).
   }
 
   .howto-status-card {
-    flex: 0 1 400px; /* empieza en 400px pero puede achicarse */
+    flex: 0 1 400px;
     min-width: 200px;
     background: var(--panel);
     border: 1px solid var(--line);
@@ -945,23 +945,47 @@ it).
     border-color: var(--accent);
   }
 
-  @media (max-width: 860px) {
+  /* ≤1100px (iPad Pro, Surface Pro, etc.): pasar a dos líneas */
+  @media (max-width: 1100px) {
     .status-grid-row { flex-direction: column; }
     .status-grid {
-      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
       flex: none;
       width: 100%;
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
     }
     .status-howto-divider {
       width: auto;
       height: 1px;
-      margin: 10px 0;
+      margin: 12px 0;
       align-self: auto;
     }
     .howto-status-card {
       flex: none;
       width: auto;
       min-width: 0;
+    }
+  }
+
+  /* ≤860px (iPad Air, iPad mini, tablets angostas):
+     reducir padding y gap para que las 5 cards entren en una línea */
+  @media (max-width: 860px) {
+    .status-grid {
+      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      gap: 8px;
+    }
+    .status-card {
+      padding: 12px 10px;
+    }
+  }
+
+  /* ≤600px (mobile): auto-fit, wrap a múltiples filas */
+  @media (max-width: 600px) {
+    .status-grid {
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 8px;
+    }
+    .status-card {
+      padding: 12px 12px;
     }
   }
 
@@ -3176,7 +3200,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 17:35 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 17:43 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
