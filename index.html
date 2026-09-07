@@ -904,7 +904,7 @@ it).
   /* ============ STATUS CARDS ============ */
   .status-grid {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr));
+    grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
     gap: 12px;
     flex: 1;
     min-width: 0;
@@ -913,7 +913,7 @@ it).
   /* Wrapper: flex row con la grilla de estados + separador + card de howto */
   .status-grid-row {
     display: flex;
-    align-items: flex-start;
+    align-items: stretch;
     gap: 0;
     margin-bottom: 36px;
     width: 100%;
@@ -972,6 +972,8 @@ it).
     padding: 16px 18px;
     cursor: pointer;
     transition: transform 0.12s ease, box-shadow 0.12s ease, border-color 0.12s ease;
+    display: flex;
+    flex-direction: column;
   }
 
   .status-card:hover {
@@ -2748,11 +2750,12 @@ function saveCachedIdeas() {
   }
 }
 
-// Always starts with the local cache (or the default data) so the
-// page shows up immediately without waiting for Google login. Once
-// Drive confirms a session, initDriveSync() can replace IDEAS with
-// whatever is in Drive if it's more recent.
-let IDEAS = loadCachedIdeas();
+// If there's a saved Drive token, start with empty IDEAS so Drive
+// ideas don't appear as local if the token is expired or invalid.
+// initDriveSync() will fill IDEAS from Drive (or clear everything
+// if the token is no longer valid). Without a token, load from
+// local cache as usual — that's the anonymous mode.
+let IDEAS = getSavedToken() ? [] : loadCachedIdeas();
 
 /* ---------------- Google Identity Services (login) ---------------- */
 
@@ -3172,7 +3175,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 17:17 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 17:24 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
