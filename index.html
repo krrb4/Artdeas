@@ -528,6 +528,40 @@ it).
     }
   }
 
+  /* ============ HOW IT WORKS MODAL ============ */
+  .howto-step {
+    display: flex;
+    gap: 14px;
+    align-items: flex-start;
+  }
+
+  .howto-step-icon {
+    font-size: 1.5rem;
+    flex-shrink: 0;
+    width: 36px;
+    text-align: center;
+    line-height: 1;
+    margin-top: 2px;
+  }
+
+  .howto-step-title {
+    font-weight: 600;
+    font-size: 0.92rem;
+    color: var(--ink);
+    margin-bottom: 4px;
+  }
+
+  .howto-step-desc {
+    font-size: 0.83rem;
+    color: var(--slate);
+    line-height: 1.55;
+  }
+
+  .howto-step-desc strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+
   .changelog-entry {
     margin-bottom: 18px;
   }
@@ -769,6 +803,52 @@ it).
   .home-create-btn:hover {
     background: var(--accent-hover);
   }
+
+  .home-howto-strip {
+    max-width: 460px;
+    margin: 28px auto 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    padding: 16px 18px;
+    border-radius: 12px;
+    background: var(--accent-soft);
+    border: 1px solid var(--line);
+  }
+
+  .home-howto-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    font-size: 0.83rem;
+    color: var(--slate);
+    line-height: 1.45;
+  }
+
+  .home-howto-icon {
+    font-size: 1rem;
+    flex-shrink: 0;
+    width: 20px;
+    text-align: center;
+  }
+
+  .home-howto-item strong {
+    color: var(--ink);
+  }
+
+  .home-howto-more {
+    align-self: flex-end;
+    background: none;
+    border: none;
+    font-size: 0.8rem;
+    color: var(--accent);
+    cursor: pointer;
+    font-family: var(--sans);
+    padding: 0;
+    margin-top: 2px;
+  }
+
+  .home-howto-more:hover { text-decoration: underline; }
 
   @media (max-width: 600px) {
     .home-hero { padding: 16px 0 24px; }
@@ -2247,7 +2327,11 @@ it).
       <div id="nav-categorias"></div>
     </div>
 
-    <div class="version-link" onclick="openChangelog()">v0.6.0 · What's new</div>
+    <div style="display:flex;gap:10px;align-items:center;justify-content:center">
+      <div class="version-link" style="margin-top:0;padding-top:0" onclick="openChangelog()">v0.6.0 · What's new</div>
+      <span style="color:var(--line-strong)">·</span>
+      <div class="version-link" style="margin-top:0;padding-top:0" onclick="openHowto()">How it works</div>
+    </div>
   </aside>
 
   <main class="main" id="main"></main>
@@ -2389,6 +2473,60 @@ it).
       <button class="modal-close" onclick="closeChangelog()">&times;</button>
     </div>
     <div id="changelog-body"></div>
+  </div>
+</div>
+
+<!-- MODAL: How it works (onboarding) -->
+<div class="modal-overlay" id="howto-overlay">
+  <div class="modal-box" style="max-width:500px">
+    <div class="modal-head">
+      <div class="modal-title">How Artdeas works</div>
+      <button class="modal-close" onclick="closeHowto()">&times;</button>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:20px;padding-top:4px">
+
+      <div class="howto-step">
+        <div class="howto-step-icon">💡</div>
+        <div>
+          <div class="howto-step-title">Capture your ideas</div>
+          <div class="howto-step-desc">Tap <strong>+</strong> to add any idea — a short film, a drawing, a recipe, anything. Give it a title, a category, and a quick description. Don't overthink it.</div>
+        </div>
+      </div>
+
+      <div class="howto-step">
+        <div class="howto-step-icon">🤖</div>
+        <div>
+          <div class="howto-step-title">Develop it with AI</div>
+          <div class="howto-step-desc">Open any idea and tap <strong>Develop idea</strong>. Copy the prompt it generates and paste it into any AI (ChatGPT, Claude, Gemini…). The AI will ask you questions one by one to build out a production plan. When you're done — or if you say <strong>"stop"</strong> — paste the result back to update your idea automatically.</div>
+        </div>
+      </div>
+
+      <div class="howto-step">
+        <div class="howto-step-icon">📋</div>
+        <div>
+          <div class="howto-step-title">Track your progress</div>
+          <div class="howto-step-desc">Each idea has a <strong>Progress</strong> timeline where you can mark phases as Pending, In progress, or Done. Use <strong>Things to figure out</strong> to track open questions, and check them off as you solve them.</div>
+        </div>
+      </div>
+
+      <div class="howto-step">
+        <div class="howto-step-icon">☁️</div>
+        <div>
+          <div class="howto-step-title">Sync across devices</div>
+          <div class="howto-step-desc">Connect Google Drive from the sidebar to keep your ideas synced across all your devices. Your data lives in a file in <em>your</em> Drive — Artdeas never stores anything on its own servers.</div>
+        </div>
+      </div>
+
+      <div class="howto-step">
+        <div class="howto-step-icon">📥</div>
+        <div>
+          <div class="howto-step-title">Import ideas from AI</div>
+          <div class="howto-step-desc">Tap <strong>+</strong> and switch to the <strong>Import from AI</strong> tab to paste a full idea built in a chat — title, plan, and all.</div>
+        </div>
+      </div>
+
+    </div>
+    <button class="form-submit" style="margin-top:20px" onclick="closeHowto()">Got it</button>
   </div>
 </div>
 
@@ -2645,7 +2783,15 @@ async function initDriveSync(ideasParaCrearSiNoExiste) {
   try {
     const ok = await ensureGoogleAuth();
     if (!ok) {
-      setSyncStatus("No connection to Google Drive. Working in local mode.", true);
+      // Token expired or missing — clear local cache so Drive ideas
+      // don't linger as if they were local, then start fresh.
+      if (STORAGE_OK) {
+        try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
+      }
+      IDEAS = [];
+      render();
+      setSyncStatus("Session expired. Please reconnect Google Drive.", true);
+      updateDriveButtonUI();
       return;
     }
     currentUserEmail = await fetchCurrentUserEmail();
@@ -2911,7 +3057,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-05 17:47 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 15:50 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3012,6 +3158,28 @@ function resolveDialog(value) {
     dialogResolve(value);
     dialogResolve = null;
   }
+}
+
+const HOWTO_SEEN_KEY = "artdeas_howto_seen_v1";
+
+function openHowto() {
+  document.getElementById("howto-overlay").classList.add("open");
+  if (STORAGE_OK) {
+    try { localStorage.setItem(HOWTO_SEEN_KEY, "1"); } catch(e) {}
+  }
+}
+
+function closeHowto() {
+  document.getElementById("howto-overlay").classList.remove("open");
+}
+
+function maybeShowHowto() {
+  if (!STORAGE_OK) return;
+  try {
+    if (!localStorage.getItem(HOWTO_SEEN_KEY)) {
+      setTimeout(openHowto, 800); // small delay so the app loads first
+    }
+  } catch(e) {}
 }
 
 function openChangelog() {
@@ -4117,6 +4285,22 @@ function renderHomeView() {
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
         Create new idea
       </button>
+
+      <div class="home-howto-strip">
+        <div class="home-howto-item">
+          <span class="home-howto-icon">💡</span>
+          <span>Tap <strong>+</strong> to capture any idea</span>
+        </div>
+        <div class="home-howto-item">
+          <span class="home-howto-icon">🤖</span>
+          <span>Open an idea → <strong>Develop idea</strong> to build a plan with AI</span>
+        </div>
+        <div class="home-howto-item">
+          <span class="home-howto-icon">✅</span>
+          <span>Mark phases as done as you go</span>
+        </div>
+        <button class="home-howto-more" onclick="openHowto()">How it works →</button>
+      </div>
     `}</div>
   `;
 }
@@ -4590,6 +4774,7 @@ if (getSavedToken()) {
 }
 
 maybeShowInstallBanner();
+maybeShowHowto();
 </script>
 </body>
 </html>
