@@ -373,6 +373,7 @@ it).
     transition: background 0.15s ease, color 0.15s ease;
     min-height: 100vh;
     min-height: 100dvh;
+    overflow-x: hidden;
   }
 
   a { color: inherit; }
@@ -730,14 +731,14 @@ it).
 
   /* ============ MAIN ============ */
   .main {
-    padding: 36px 40px 80px;
+    padding: 0 40px;
     max-width: 1400px;
     width: 100%;
     margin: 0 auto;
   }
 
   @media (max-width: 600px) {
-    .main { padding: 24px 18px 60px; }
+    .main { padding: 0 18px 60px; }
   }
 
   .page-header {
@@ -966,11 +967,19 @@ it).
     }
   }
 
-  /* ≤860px (iPad Air, iPad mini, tablets angostas):
-     reducir padding y gap para que las 5 cards entren en una línea */
+
+  /* ≤1170px: auto-fit para evitar scroll horizontal */
+  @media (max-width: 1170px) {
+    .status-grid {
+      grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+      gap: 10px;
+    }
+  }
+
+  /* ≤860px: reducir gap y padding */
   @media (max-width: 860px) {
     .status-grid {
-      grid-template-columns: 2fr 1fr 1fr 1fr 1fr;
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
       gap: 8px;
     }
     .status-card {
@@ -978,7 +987,7 @@ it).
     }
   }
 
-  /* ≤600px (mobile): auto-fit, wrap a múltiples filas */
+  /* ≤600px (mobile) */
   @media (max-width: 600px) {
     .status-grid {
       grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
@@ -3206,7 +3215,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 17:58 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 18:09 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
