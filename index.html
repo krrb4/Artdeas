@@ -834,15 +834,15 @@ it).
   .howto-status-items {
     display: flex;
     flex-direction: column;
-    gap: 5px;
+    gap: 8px;
   }
 
   .howto-status-item {
-    font-size: 0.78rem;
+    font-size: 0.8rem;
     color: var(--slate);
-    line-height: 1.4;
+    line-height: 1.5;
     display: flex;
-    gap: 6px;
+    gap: 7px;
     align-items: flex-start;
   }
 
@@ -904,7 +904,7 @@ it).
   /* Wrapper que pone la grilla de estados y la card de howto en una misma fila */
   .status-grid-row {
     display: flex;
-    align-items: stretch;
+    align-items: flex-start;
     gap: 0;
     margin-bottom: 36px;
   }
@@ -912,17 +912,19 @@ it).
   .status-grid-row .status-grid {
     flex: 1;
     margin-bottom: 0;
+    min-width: 0;
   }
 
   .status-howto-divider {
     width: 1px;
     background: var(--line-strong);
-    margin: 0 14px;
+    margin: 0 16px;
     flex-shrink: 0;
+    align-self: stretch;
   }
 
   .howto-status-card {
-    width: 180px;
+    width: 220px;
     flex-shrink: 0;
     background: var(--panel);
     border: 1px solid var(--line);
@@ -932,11 +934,15 @@ it).
     cursor: pointer;
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 10px;
   }
 
   .howto-status-card:hover {
     border-color: var(--accent);
+  }
+
+  @media (max-width: 1000px) {
+    .howto-status-card { width: 190px; }
   }
 
   @media (max-width: 860px) {
@@ -949,7 +955,8 @@ it).
     .status-howto-divider {
       width: auto;
       height: 1px;
-      margin: 8px 0;
+      margin: 10px 0;
+      align-self: auto;
     }
     .howto-status-card {
       width: auto;
@@ -1746,6 +1753,22 @@ it).
     background: var(--paper);
   }
 
+  /* El botón "?" cuadrado — mismo padding vertical que el resto, ancho fijo */
+  .sidebar-help-btn {
+    width: auto;
+    flex-shrink: 0;
+    text-align: center;
+    padding: 9px 14px;
+    font-weight: 700;
+    color: var(--accent);
+    border-color: var(--accent);
+  }
+
+  .sidebar-help-btn:hover {
+    background: var(--accent-soft);
+    border-color: var(--accent);
+  }
+
   .drive-btn {
     display: flex !important;
     align-items: center;
@@ -2375,7 +2398,7 @@ it).
     <div class="nav-section">
       <div style="display:flex;gap:8px">
         <button class="sidebar-action-btn primary" style="flex:1" onclick="openNewIdeaForm()">+ New idea</button>
-        <button class="sidebar-action-btn" style="flex:0;padding:8px 12px" onclick="openHowto()" title="How it works">?</button>
+        <button class="sidebar-action-btn sidebar-help-btn" onclick="openHowto()" title="How it works">?</button>
       </div>
       <button class="sidebar-action-btn" onclick="openBackupImport()">Backup / Import your ideas</button>
     </div>
@@ -2547,10 +2570,8 @@ it).
     <!-- Backup panel -->
     <div id="bi-panel-backup" style="min-height:240px;display:flex;flex-direction:column">
       <p class="form-hint" style="margin-bottom:12px">Download all your ideas as a JSON file. You can use it to restore your backlog later, or import it on another device.</p>
-      <div style="flex:1;min-height:150px;background:var(--accent-soft);border-radius:8px;border:1px solid var(--line);display:flex;align-items:center;justify-content:center">
-        <span style="font-size:2rem">📦</span>
-      </div>
-      <button class="form-submit" style="margin-top:10px" onclick="exportBackup()">Download backup (.json)</button>
+      <div style="flex:1"></div>
+      <button class="form-submit" onclick="exportBackup()">Download backup (.json)</button>
     </div>
 
     <!-- Import panel -->
@@ -3125,7 +3146,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 16:21 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 16:49 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
