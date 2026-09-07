@@ -904,22 +904,19 @@ it).
   /* ============ STATUS CARDS ============ */
   .status-grid {
     display: grid;
-    grid-template-columns: repeat(5, 1fr);
+    grid-template-columns: repeat(5, minmax(0, 1fr));
     gap: 12px;
+    flex: 1;
+    min-width: 0;
   }
 
-  /* Wrapper que pone la grilla de estados y la card de howto en una misma fila */
+  /* Wrapper: flex row con la grilla de estados + separador + card de howto */
   .status-grid-row {
     display: flex;
     align-items: flex-start;
     gap: 0;
     margin-bottom: 36px;
-  }
-
-  .status-grid-row .status-grid {
-    flex: 1;
-    margin-bottom: 0;
-    min-width: 0;
+    width: 100%;
   }
 
   .status-howto-divider {
@@ -931,9 +928,7 @@ it).
   }
 
   .howto-status-card {
-    flex: 1;
-    min-width: 160px;
-    max-width: none;
+    width: 200px;
     flex-shrink: 0;
     background: var(--panel);
     border: 1px solid var(--line);
@@ -950,16 +945,14 @@ it).
     border-color: var(--accent);
   }
 
-  @media (max-width: 1000px) {
-    .howto-status-card { min-width: 140px; }
-  }
-
   @media (max-width: 860px) {
     .status-grid-row {
       flex-direction: column;
     }
     .status-grid {
-      grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+      grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+      flex: none;
+      width: 100%;
     }
     .status-howto-divider {
       width: auto;
@@ -2409,7 +2402,7 @@ it).
     </div>
 
     <div class="nav-section">
-      <div style="display:flex;gap:8px;align-items:stretch">
+      <div style="display:flex;gap:8px;align-items:stretch;margin-bottom:8px">
         <button class="sidebar-action-btn primary" style="flex:1;margin-bottom:0" onclick="openNewIdeaForm()">+ New idea</button>
         <button class="sidebar-action-btn sidebar-help-btn" onclick="openHowto()" title="How it works">?</button>
       </div>
@@ -3179,7 +3172,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 17:09 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 17:17 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -4950,6 +4943,26 @@ if (getSavedToken()) {
 
 maybeShowInstallBanner();
 maybeShowHowto();
+
+// Close any modal when clicking the overlay backdrop (outside the modal-box)
+document.querySelectorAll(".modal-overlay").forEach(overlay => {
+  overlay.addEventListener("click", e => {
+    if (e.target === overlay) {
+      // Find and call the close function for this specific modal
+      const closeFns = {
+        "new-idea-overlay": closeNewIdeaForm,
+        "evolve-overlay": closeEvolveModal,
+        "export-overlay": closeExportOptions,
+        "changelog-overlay": closeChangelog,
+        "backup-import-overlay": closeBackupImport,
+        "howto-overlay": closeHowto,
+        // dialog-overlay (confirm/alert) intentionally excluded — it needs an explicit choice
+      };
+      const fn = closeFns[overlay.id];
+      if (fn) fn();
+    }
+  });
+});
 </script>
 </body>
 </html>
