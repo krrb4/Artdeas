@@ -928,7 +928,7 @@ it).
   }
 
   .howto-status-card {
-    width: 200px;
+    width: 400px;
     flex-shrink: 0;
     background: var(--panel);
     border: 1px solid var(--line);
@@ -943,6 +943,10 @@ it).
 
   .howto-status-card:hover {
     border-color: var(--accent);
+  }
+
+  @media (max-width: 1200px) {
+    .howto-status-card { width: 280px; }
   }
 
   @media (max-width: 860px) {
@@ -2750,12 +2754,11 @@ function saveCachedIdeas() {
   }
 }
 
-// If there's a saved Drive token, start with empty IDEAS so Drive
-// ideas don't appear as local if the token is expired or invalid.
-// initDriveSync() will fill IDEAS from Drive (or clear everything
-// if the token is no longer valid). Without a token, load from
-// local cache as usual — that's the anonymous mode.
-let IDEAS = getSavedToken() ? [] : loadCachedIdeas();
+// Always start from local cache — which now only ever contains
+// anonymous (non-Drive) ideas. Drive ideas are never written to
+// localStorage, so this is safe: if the user has a Drive session,
+// initDriveSync() will replace IDEAS with Drive data shortly after.
+let IDEAS = loadCachedIdeas();
 
 /* ---------------- Google Identity Services (login) ---------------- */
 
@@ -2882,11 +2885,8 @@ async function initDriveSync(ideasParaCrearSiNoExiste) {
   try {
     const ok = await ensureGoogleAuth();
     if (!ok) {
-      // Token expired or missing — clear local cache so Drive ideas
-      // don't linger as if they were local, then start fresh.
-      if (STORAGE_OK) {
-        try { localStorage.removeItem(STORAGE_KEY); } catch(e) {}
-      }
+      // Token expired or invalid — clear any Drive ideas from memory
+      // but don't touch localStorage (local anonymous ideas stay safe).
       IDEAS = [];
       render();
       setSyncStatus("Session expired. Please reconnect Google Drive.", true);
@@ -2896,25 +2896,20 @@ async function initDriveSync(ideasParaCrearSiNoExiste) {
     currentUserEmail = await fetchCurrentUserEmail();
     let file = await driveFindDataFile();
     if (!file) {
-      // First time this account uses Artdeas: only then does it make
-      // sense to "seed" the Drive file with whatever was local (if
-      // the user confirmed that, see connectGoogleDrive).
+      // First time this account uses Artdeas: seed Drive with local ideas
+      // if the user confirmed that (see connectGoogleDrive).
       const seed = ideasParaCrearSiNoExiste || [];
       const newId = await driveCreateDataFile(seed);
       driveFileId = newId;
       IDEAS = seed;
-      saveCachedIdeas();
+      // Don't save to localStorage — we're now in Drive mode.
       render();
     } else {
-      // A data file already exists for this account: THAT is the
-      // source of truth, it replaces whatever was on screen
-      // regardless of whether it was anonymous or from another
-      // session.
+      // Drive has the data — load it into memory only, no localStorage.
       driveFileId = file.id;
       const remoteIdeas = await driveReadDataFile(driveFileId);
       IDEAS = Array.isArray(remoteIdeas) ? remoteIdeas : [];
       IDEAS.forEach(migrateFasesIfNeeded);
-      saveCachedIdeas();
       render();
     }
     driveReady = true;
@@ -2927,19 +2922,16 @@ async function initDriveSync(ideasParaCrearSiNoExiste) {
 }
 
 function handleDriveAuthExpired() {
-  // Token expired mid-session — clear everything so Drive ideas
-  // don't stay on screen as if they were local.
+  // Token expired mid-session — drop Drive ideas from memory.
+  // Don't touch STORAGE_KEY: local anonymous ideas stay safe.
   driveReady = false;
   driveFileId = null;
   accessToken = null;
   currentUserEmail = null;
   if (STORAGE_OK) {
-    try {
-      localStorage.removeItem(TOKEN_STORAGE_KEY);
-      localStorage.removeItem(STORAGE_KEY);
-    } catch(e) {}
+    try { localStorage.removeItem(TOKEN_STORAGE_KEY); } catch(e) {}
   }
-  IDEAS = [];
+  IDEAS = loadCachedIdeas(); // show local anonymous ideas if any
   updateDriveButtonUI();
   setSyncStatus("Session expired. Please reconnect Google Drive.", true);
   render();
@@ -2956,12 +2948,17 @@ function setSyncStatus(msg, isWarning) {
 // never waits on the network), and also attempts to write to Drive
 // in the background if a session is already active.
 function saveIdeas() {
-  saveCachedIdeas();
   if (driveReady && driveFileId && accessToken) {
+    // Drive mode: ideas live only in Drive + memory.
+    // Never write to localStorage so they don't leak to the next
+    // person who opens the app on this device without logging in.
     driveWriteDataFile(driveFileId, IDEAS).catch(e => {
-      console.error("No se pudo guardar en Drive:", e);
-      setSyncStatus("Change saved locally. Drive sync failed.", true);
+      console.error("Could not save to Drive:", e);
+      setSyncStatus("Change not saved — Drive sync failed.", true);
     });
+  } else {
+    // Anonymous mode: persist locally.
+    saveCachedIdeas();
   }
 }
 
@@ -3007,10 +3004,12 @@ async function disconnectGoogleDrive() {
   if (STORAGE_OK) {
     try {
       localStorage.removeItem(TOKEN_STORAGE_KEY);
-      localStorage.removeItem(STORAGE_KEY); // also clear local cache so ideas don't linger
+      // Don't touch STORAGE_KEY — local anonymous ideas should survive a disconnect.
     } catch(e) {}
   }
-  IDEAS = loadCachedIdeas(); // reload from cache (now empty) → starts fresh
+  // After disconnecting, load whatever anonymous ideas existed locally
+  // (if any). Drive ideas are gone from memory — they were never in localStorage.
+  IDEAS = loadCachedIdeas();
   updateDriveButtonUI();
   setSyncStatus("Disconnected. Working in local mode.", false);
   render();
@@ -3175,7 +3174,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 17:24 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-07 17:30 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
