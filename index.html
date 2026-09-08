@@ -2592,7 +2592,7 @@ it).
 
       <label class="form-label">Category</label>
       <div class="categoria-wrap" style="position:relative">
-        <input class="form-input" id="nid-categoria" required placeholder="E.g: Short / Instagram Reel" autocomplete="off" oninput="showCategoriaSuggestions('nid-categoria');toggleClearBtn('nid-categoria')" onfocus="showCategoriaSuggestions('nid-categoria');toggleClearBtn('nid-categoria')" onblur="hideCategoriaSuggestions(event)" style="padding-right:32px">
+        <input class="form-input" id="nid-categoria" required placeholder="E.g: Short / Instagram Reel" autocomplete="off" oninput="showCategoriaSuggestions('nid-categoria');toggleClearBtn('nid-categoria')" onfocus="showCategoriaSuggestions('nid-categoria');toggleClearBtn('nid-categoria')" onblur="hideCategoriaSuggestions(event)" onkeydown="handleDropdownKey(event,'nid-categoria')" style="padding-right:32px">
         <button type="button" id="nid-categoria-clear" onclick="clearCategoria('nid-categoria')" style="display:none;position:absolute;right:28px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--slate);font-size:1rem;line-height:1;padding:2px 4px">&times;</button>
         <div class="categoria-dropdown" id="nid-categoria-dropdown" style="display:none"></div>
       </div>
@@ -2603,7 +2603,7 @@ it).
           onclick="showEstadoSuggestions('nid-estado')"
           onfocus="showEstadoSuggestions('nid-estado')"
           onblur="hideCategoriaSuggestions(event)"
-          onkeydown="handleEstadoKey(event, 'nid-estado')"
+          onkeydown="handleDropdownKey(event,'nid-estado')"
           onkeypress="return false"
           style="cursor:pointer;caret-color:transparent">
         <input type="hidden" id="nid-estado-value" value="idea">
@@ -3352,7 +3352,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-08 22:07 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-08 22:56 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3775,38 +3775,47 @@ function pickEstado(inputId, value, label) {
   if (dropdown) dropdown.style.display = "none";
 }
 
-function handleEstadoKey(event, inputId) {
+// Generic keyboard navigation for any categoria-style dropdown.
+// Works for both category (free text + suggestions) and status (fixed options).
+function handleDropdownKey(event, inputId) {
   const dropdown = document.getElementById(inputId + "-dropdown");
   if (!dropdown) return;
 
+  // Open dropdown if closed and user presses arrow/enter/space
   if (dropdown.style.display === "none") {
-    if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Enter" || event.key === " ") {
+    if (["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
       event.preventDefault();
-      showEstadoSuggestions(inputId);
+      // Use the right open function depending on the field type
+      if (inputId === "nid-estado" || inputId === "ie-estado") {
+        showEstadoSuggestions(inputId);
+      } else {
+        showCategoriaSuggestions(inputId);
+      }
     }
     return;
   }
 
   const items = Array.from(dropdown.querySelectorAll(".categoria-option"));
+  if (!items.length) return;
+
   let idx = items.findIndex(el => el.classList.contains("active"));
-  if (idx === -1) idx = 0;
 
   if (event.key === "ArrowDown") {
     event.preventDefault();
-    idx = (idx + 1) % items.length;
+    idx = idx < items.length - 1 ? idx + 1 : 0;
     items.forEach(el => el.classList.remove("active"));
     items[idx].classList.add("active");
     items[idx].scrollIntoView({ block: "nearest" });
   } else if (event.key === "ArrowUp") {
     event.preventDefault();
-    idx = (idx - 1 + items.length) % items.length;
+    idx = idx > 0 ? idx - 1 : items.length - 1;
     items.forEach(el => el.classList.remove("active"));
     items[idx].classList.add("active");
     items[idx].scrollIntoView({ block: "nearest" });
   } else if (event.key === "Enter" || event.key === " ") {
     event.preventDefault();
-    const selected = items.find(el => el.classList.contains("active")) || items[0];
-    if (selected) selected.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    const selected = idx >= 0 ? items[idx] : items[0];
+    selected?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
   } else if (event.key === "Escape") {
     dropdown.style.display = "none";
   }
