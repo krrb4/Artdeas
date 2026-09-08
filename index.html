@@ -488,6 +488,14 @@ it).
     to { opacity: 1; transform: translateY(0); }
   }
 
+  @keyframes drive-spin {
+    to { transform: rotate(360deg); }
+  }
+
+  .drive-loading-spinner {
+    animation: drive-spin 0.8s linear infinite;
+  }
+
   .install-banner-icon {
     flex-shrink: 0;
     width: 30px;
@@ -3063,6 +3071,35 @@ function handleDriveAuthExpired() {
   render();
 }
 
+function showDriveLoadingOverlay() {
+  let el = document.getElementById("drive-loading-overlay");
+  if (!el) {
+    el = document.createElement("div");
+    el.id = "drive-loading-overlay";
+    el.style.cssText = `
+      position: fixed; inset: 0; z-index: 500;
+      background: var(--paper);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 16px;
+    `;
+    el.innerHTML = `
+      <svg class="drive-loading-spinner" width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2">
+        <circle cx="12" cy="12" r="10" stroke-opacity="0.2"/>
+        <path d="M12 2a10 10 0 0 1 10 10" stroke-linecap="round"/>
+      </svg>
+      <div style="font-family:var(--sans);font-size:0.85rem;color:var(--slate)">Connecting to Google Drive…</div>
+    `;
+    document.body.appendChild(el);
+  }
+  el.style.display = "flex";
+}
+
+function hideDriveLoadingOverlay() {
+  const el = document.getElementById("drive-loading-overlay");
+  if (el) el.remove();
+}
+
 function setSyncStatus(msg, isWarning) {
   const el = document.getElementById("sync-status");
   if (!el) return;
@@ -3306,7 +3343,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-08 04:20 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-08 04:22 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -5096,11 +5133,11 @@ try {
 
 render();
 
-// Silent attempt to sync with Drive on load, only if there's
-// already a saved token (doesn't force the login prompt the first
-// time; that's what the "Connect Google Drive" button is for).
+// If a Drive token exists, show a loading overlay while syncing
+// so the user doesn't see a confusing "empty / logged out" flash.
 if (getSavedToken()) {
-  initDriveSync();
+  showDriveLoadingOverlay();
+  initDriveSync().finally(() => hideDriveLoadingOverlay());
 }
 
 maybeShowInstallBanner();
