@@ -2597,13 +2597,15 @@ it).
       </div>
 
       <label class="form-label">Initial status</label>
-      <select class="form-input" id="nid-estado">
-        <option value="idea">Idea</option>
-        <option value="en-curso">In progress</option>
-        <option value="pausada">Paused</option>
-        <option value="descartada">Discarded</option>
-        <option value="completada">Completed</option>
-      </select>
+      <div class="categoria-wrap" style="position:relative">
+        <input class="form-input" id="nid-estado" value="Idea" autocomplete="off" readonly
+          onfocus="showEstadoSuggestions('nid-estado')"
+          onblur="hideCategoriaSuggestions(event)"
+          onkeydown="handleEstadoKey(event, 'nid-estado')"
+          style="cursor:pointer">
+        <input type="hidden" id="nid-estado-value" value="idea">
+        <div class="categoria-dropdown" id="nid-estado-dropdown" style="display:none"></div>
+      </div>
 
       <label class="form-label">Description</label>
       <textarea class="form-input form-textarea" id="nid-descripcion" placeholder="What the idea is about..."></textarea>
@@ -3347,7 +3349,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-08 05:00 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-08 14:52 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3728,6 +3730,63 @@ function hideCategoriaSuggestions(event) {
   }, 150);
 }
 
+const ESTADO_OPTIONS = [
+  { value: "idea", label: "Idea" },
+  { value: "en-curso", label: "In progress" },
+  { value: "pausada", label: "Paused" },
+  { value: "descartada", label: "Discarded" },
+  { value: "completada", label: "Completed" },
+];
+
+function showEstadoSuggestions(inputId) {
+  const dropdown = document.getElementById(inputId + "-dropdown");
+  if (!dropdown) return;
+  const currentVal = document.getElementById(inputId + "-value")?.value;
+  dropdown.innerHTML = ESTADO_OPTIONS.map(opt => `
+    <div class="categoria-option ${opt.value === currentVal ? 'active' : ''}"
+      onmousedown="pickEstado('${inputId}','${opt.value}','${opt.label}')">
+      ${escapeHtml(opt.label)}
+    </div>`).join("");
+  dropdown.style.display = "block";
+}
+
+function pickEstado(inputId, value, label) {
+  const input = document.getElementById(inputId);
+  const hidden = document.getElementById(inputId + "-value");
+  const dropdown = document.getElementById(inputId + "-dropdown");
+  if (input) input.value = label;
+  if (hidden) hidden.value = value;
+  if (dropdown) dropdown.style.display = "none";
+}
+
+function handleEstadoKey(event, inputId) {
+  const dropdown = document.getElementById(inputId + "-dropdown");
+  if (!dropdown || dropdown.style.display === "none") {
+    if (event.key === "ArrowDown" || event.key === "Enter") showEstadoSuggestions(inputId);
+    return;
+  }
+  const items = dropdown.querySelectorAll(".categoria-option");
+  const active = dropdown.querySelector(".categoria-option.active");
+  let idx = Array.from(items).indexOf(active);
+  if (event.key === "ArrowDown") {
+    event.preventDefault();
+    idx = (idx + 1) % items.length;
+    items.forEach(el => el.classList.remove("active"));
+    items[idx].classList.add("active");
+  } else if (event.key === "ArrowUp") {
+    event.preventDefault();
+    idx = (idx - 1 + items.length) % items.length;
+    items.forEach(el => el.classList.remove("active"));
+    items[idx].classList.add("active");
+  } else if (event.key === "Enter") {
+    event.preventDefault();
+    const selected = dropdown.querySelector(".categoria-option.active");
+    if (selected) selected.dispatchEvent(new MouseEvent("mousedown"));
+  } else if (event.key === "Escape") {
+    dropdown.style.display = "none";
+  }
+}
+
 function updateCategoriaSuggestions() {} // kept for compatibility, no longer needed
 
 function openNewIdeaForm() {
@@ -3766,7 +3825,7 @@ function submitNewIdea(e) {
   const titulo = document.getElementById("nid-titulo").value.trim();
   const categoria = document.getElementById("nid-categoria").value.trim();
   const descripcion = document.getElementById("nid-descripcion").value.trim();
-  const estado = document.getElementById("nid-estado").value;
+  const estado = document.getElementById("nid-estado-value")?.value || "idea";
   if (!titulo || !categoria) return;
 
   let id = slugify(titulo);
