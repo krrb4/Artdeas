@@ -2643,6 +2643,10 @@ it).
       <textarea class="form-input form-textarea" id="evolve-textarea" style="min-height:160px;font-family:var(--mono);font-size:16px" placeholder='{"fases": [{"nombre": "...", "pasos": ["..."]}], "cosasAResolver": [{"texto": "...", "resuelto": false}]}'></textarea>
       <button class="form-submit" onclick="submitEvolve()">Update idea</button>
     </div>
+
+    <div style="text-align:center;margin-top:8px">
+      <button onclick="closeEvolveModal()" style="background:none;border:none;font-size:0.8rem;color:var(--slate);cursor:pointer;text-decoration:underline">Do it later</button>
+    </div>
   </div>
 </div>
 
@@ -3343,7 +3347,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-08 04:22 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-08 05:00 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3779,6 +3783,8 @@ function submitNewIdea(e) {
   saveIdeas();
   closeNewIdeaForm();
   openDetail(id);
+  // Open Develop idea right away as a suggested next step
+  openEvolveModal(id);
 }
 
 /* ==================================================================
