@@ -2588,11 +2588,12 @@ it).
 
     <form id="new-idea-form" onsubmit="submitNewIdea(event)">
       <label class="form-label">Title</label>
-      <input class="form-input" id="nid-titulo" required placeholder="E.g: Mirror — Mask Off">
+      <input class="form-input" id="nid-titulo" required placeholder="E.g: Mirror — Mask Off" autocomplete="new-password" name="artdeas-title-field">
 
       <label class="form-label">Category</label>
       <div class="categoria-wrap" style="position:relative">
-        <input class="form-input" id="nid-categoria" required placeholder="E.g: Short / Instagram Reel" autocomplete="off" oninput="showCategoriaSuggestions('nid-categoria')" onfocus="showCategoriaSuggestions('nid-categoria')" onblur="hideCategoriaSuggestions(event)">
+        <input class="form-input" id="nid-categoria" required placeholder="E.g: Short / Instagram Reel" autocomplete="off" oninput="showCategoriaSuggestions('nid-categoria');toggleClearBtn('nid-categoria')" onfocus="showCategoriaSuggestions('nid-categoria');toggleClearBtn('nid-categoria')" onblur="hideCategoriaSuggestions(event)" style="padding-right:32px">
+        <button type="button" id="nid-categoria-clear" onclick="clearCategoria('nid-categoria')" style="display:none;position:absolute;right:28px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--slate);font-size:1rem;line-height:1;padding:2px 4px">&times;</button>
         <div class="categoria-dropdown" id="nid-categoria-dropdown" style="display:none"></div>
       </div>
 
@@ -3351,7 +3352,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-08 14:58 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-08 22:07 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3690,6 +3691,19 @@ async function deleteIdea(ideaId) {
 /* ==================================================================
    CREATE IDEA — simple form from the page
 ================================================================== */
+function toggleClearBtn(inputId) {
+  const input = document.getElementById(inputId);
+  const btn = document.getElementById(inputId + "-clear");
+  if (btn) btn.style.display = input?.value ? "block" : "none";
+}
+
+function clearCategoria(inputId) {
+  const input = document.getElementById(inputId);
+  if (input) { input.value = ""; input.focus(); }
+  toggleClearBtn(inputId);
+  showCategoriaSuggestions(inputId);
+}
+
 function getExistingCategories() {
   return [...new Set(IDEAS.map(i => i.categoria).filter(Boolean))].sort();
 }
