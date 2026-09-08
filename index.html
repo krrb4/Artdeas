@@ -3306,7 +3306,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-08 04:18 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-08 04:20 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3539,6 +3539,10 @@ function filteredIdeas() {
   return base.filter(idea => matchIds.has(idea.id));
 }
 
+function saveViewState() {
+  try { sessionStorage.setItem("artdeas_view", JSON.stringify({ view, viewParam })); } catch(e) {}
+}
+
 function goHome() {
   editingIdeaId = null;
   view = "home";
@@ -3548,6 +3552,7 @@ function goHome() {
   render();
   window.scrollTo(0,0);
   closeMobileMenu();
+  saveViewState();
 }
 
 function goStatus(status) {
@@ -3559,6 +3564,7 @@ function goStatus(status) {
   render();
   window.scrollTo(0,0);
   closeMobileMenu();
+  saveViewState();
 }
 
 function goCategoria(cat) {
@@ -3570,6 +3576,7 @@ function goCategoria(cat) {
   render();
   window.scrollTo(0,0);
   closeMobileMenu();
+  saveViewState();
 }
 
 function openDetail(id) {
@@ -3581,6 +3588,7 @@ function openDetail(id) {
   render();
   window.scrollTo(0,0);
   closeMobileMenu();
+  saveViewState();
 }
 
 function goBack() {
@@ -5072,6 +5080,19 @@ function escapeHtml(str) {
 function escapeAttr(str) {
   return escapeHtml(str).replace(/'/g, "&#39;");
 }
+
+// Restore the last view from the previous session (survives reload,
+// cleared when the tab closes — sessionStorage, not localStorage).
+try {
+  const saved = sessionStorage.getItem("artdeas_view");
+  if (saved) {
+    const parsed = JSON.parse(saved);
+    if (parsed.view && parsed.view !== "home") {
+      view = parsed.view;
+      viewParam = parsed.viewParam;
+    }
+  }
+} catch(e) {}
 
 render();
 
