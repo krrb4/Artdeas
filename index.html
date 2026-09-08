@@ -730,6 +730,32 @@ it).
     color: var(--paper);
   }
 
+  .nav-cat-group {
+    margin-bottom: 4px;
+  }
+
+  .nav-idea-item {
+    padding: 4px 10px 4px 20px;
+    border-radius: 6px;
+    font-size: 0.78rem;
+    color: var(--slate);
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    line-height: 1.4;
+  }
+
+  .nav-idea-item:hover {
+    background: var(--accent-soft);
+    color: var(--accent);
+  }
+
+  .nav-idea-item.active {
+    color: var(--accent);
+    font-weight: 600;
+  }
+
   /* ============ MAIN ============ */
   .main {
     padding: 0 40px;
@@ -3280,7 +3306,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-07 22:34 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-08 03:18 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -4495,12 +4521,22 @@ function renderSidebar() {
 
   const catWrap = document.getElementById("nav-categorias");
   catWrap.innerHTML = getCategorias().map(cat => {
-    const count = IDEAS.filter(i => i.categoria === cat).length;
+    const ideas = IDEAS.filter(i => i.categoria === cat);
     const active = view === "categoria" && viewParam === cat;
-    return `<div class="nav-item-cat ${active ? 'active' : ''}" onclick="goCategoria('${escapeAttr(cat)}')">
-      <span>${escapeHtml(cat)}</span>
-      <span class="count">${count}</span>
-    </div>`;
+    const ideasHtml = ideas.map(idea => {
+      const isActive = view === "detalle" && viewParam === idea.id;
+      return `<div class="nav-idea-item ${isActive ? 'active' : ''}" onclick="openDetail('${escapeAttr(idea.id)}')">
+        ${escapeHtml(idea.titulo)}
+      </div>`;
+    }).join("");
+    return `
+      <div class="nav-cat-group">
+        <div class="nav-item-cat ${active ? 'active' : ''}" onclick="goCategoria('${escapeAttr(cat)}')">
+          <span>${escapeHtml(cat)}</span>
+          <span class="count">${ideas.length}</span>
+        </div>
+        ${ideasHtml}
+      </div>`;
   }).join("");
 }
 
