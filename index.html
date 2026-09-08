@@ -2598,11 +2598,13 @@ it).
 
       <label class="form-label">Initial status</label>
       <div class="categoria-wrap" style="position:relative">
-        <input class="form-input" id="nid-estado" value="Idea" autocomplete="off" readonly
+        <input class="form-input" id="nid-estado" value="Idea" autocomplete="off"
+          onclick="showEstadoSuggestions('nid-estado')"
           onfocus="showEstadoSuggestions('nid-estado')"
           onblur="hideCategoriaSuggestions(event)"
           onkeydown="handleEstadoKey(event, 'nid-estado')"
-          style="cursor:pointer">
+          onkeypress="return false"
+          style="cursor:pointer;caret-color:transparent">
         <input type="hidden" id="nid-estado-value" value="idea">
         <div class="categoria-dropdown" id="nid-estado-dropdown" style="display:none"></div>
       </div>
@@ -3349,7 +3351,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-08 14:52 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-08 14:58 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3761,27 +3763,36 @@ function pickEstado(inputId, value, label) {
 
 function handleEstadoKey(event, inputId) {
   const dropdown = document.getElementById(inputId + "-dropdown");
-  if (!dropdown || dropdown.style.display === "none") {
-    if (event.key === "ArrowDown" || event.key === "Enter") showEstadoSuggestions(inputId);
+  if (!dropdown) return;
+
+  if (dropdown.style.display === "none") {
+    if (event.key === "ArrowDown" || event.key === "ArrowUp" || event.key === "Enter" || event.key === " ") {
+      event.preventDefault();
+      showEstadoSuggestions(inputId);
+    }
     return;
   }
-  const items = dropdown.querySelectorAll(".categoria-option");
-  const active = dropdown.querySelector(".categoria-option.active");
-  let idx = Array.from(items).indexOf(active);
+
+  const items = Array.from(dropdown.querySelectorAll(".categoria-option"));
+  let idx = items.findIndex(el => el.classList.contains("active"));
+  if (idx === -1) idx = 0;
+
   if (event.key === "ArrowDown") {
     event.preventDefault();
     idx = (idx + 1) % items.length;
     items.forEach(el => el.classList.remove("active"));
     items[idx].classList.add("active");
+    items[idx].scrollIntoView({ block: "nearest" });
   } else if (event.key === "ArrowUp") {
     event.preventDefault();
     idx = (idx - 1 + items.length) % items.length;
     items.forEach(el => el.classList.remove("active"));
     items[idx].classList.add("active");
-  } else if (event.key === "Enter") {
+    items[idx].scrollIntoView({ block: "nearest" });
+  } else if (event.key === "Enter" || event.key === " ") {
     event.preventDefault();
-    const selected = dropdown.querySelector(".categoria-option.active");
-    if (selected) selected.dispatchEvent(new MouseEvent("mousedown"));
+    const selected = items.find(el => el.classList.contains("active")) || items[0];
+    if (selected) selected.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
   } else if (event.key === "Escape") {
     dropdown.style.display = "none";
   }
