@@ -3351,7 +3351,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-09 00:28 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-09 01:07 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3775,24 +3775,15 @@ function pickEstado(inputId, value, label) {
 }
 
 // Generic keyboard navigation for any categoria-style dropdown.
-// Works for both category (free text + suggestions) and status (fixed options).
-function handleDropdownKey(event, inputId) {
-  const dropdown = document.getElementById(inputId + "-dropdown");
+// Registered as a global keydown listener so it works regardless of
+// where focus is inside the modal.
+document.addEventListener("keydown", function(event) {
+  // Find any open dropdown
+  const dropdown = Array.from(document.querySelectorAll(".categoria-dropdown"))
+    .find(d => d.style.display !== "none");
   if (!dropdown) return;
 
-  // Open dropdown if closed and user presses arrow/enter/space
-  if (dropdown.style.display === "none") {
-    if (["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
-      event.preventDefault();
-      // Use the right open function depending on the field type
-      if (inputId === "nid-estado" || inputId === "ie-estado") {
-        showEstadoSuggestions(inputId);
-      } else {
-        showCategoriaSuggestions(inputId);
-      }
-    }
-    return;
-  }
+  const inputId = dropdown.id.replace("-dropdown", "");
 
   const items = Array.from(dropdown.querySelectorAll(".categoria-option"));
   if (!items.length) return;
@@ -3804,19 +3795,34 @@ function handleDropdownKey(event, inputId) {
     idx = idx < items.length - 1 ? idx + 1 : 0;
     items.forEach(el => el.classList.remove("active"));
     items[idx].classList.add("active");
-    items[idx].scrollIntoView({ block: "nearest" });
+    try { items[idx].scrollIntoView({ block: "nearest" }); } catch(e) {}
   } else if (event.key === "ArrowUp") {
     event.preventDefault();
     idx = idx > 0 ? idx - 1 : items.length - 1;
     items.forEach(el => el.classList.remove("active"));
     items[idx].classList.add("active");
-    items[idx].scrollIntoView({ block: "nearest" });
+    try { items[idx].scrollIntoView({ block: "nearest" }); } catch(e) {}
   } else if (event.key === "Enter" || event.key === " ") {
-    event.preventDefault();
     const selected = idx >= 0 ? items[idx] : items[0];
-    selected?.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    if (selected) {
+      event.preventDefault();
+      selected.dispatchEvent(new MouseEvent("mousedown", { bubbles: true }));
+    }
   } else if (event.key === "Escape") {
     dropdown.style.display = "none";
+  }
+});
+
+// handleDropdownKey kept for backward compat but logic is now in the global listener
+function handleDropdownKey(event, inputId) {
+  const dropdown = document.getElementById(inputId + "-dropdown");
+  if (!dropdown) return;
+  if (dropdown.style.display === "none") {
+    if (["ArrowDown", "ArrowUp", "Enter", " "].includes(event.key)) {
+      event.preventDefault();
+      if (inputId.includes("estado")) showEstadoSuggestions(inputId);
+      else showCategoriaSuggestions(inputId);
+    }
   }
 }
 
