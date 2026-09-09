@@ -2592,7 +2592,7 @@ it).
 
       <label class="form-label">Category</label>
       <div class="categoria-wrap" style="position:relative">
-        <input class="form-input" id="nid-categoria" required placeholder="E.g: Short / Instagram Reel" autocomplete="off" oninput="showCategoriaSuggestions('nid-categoria');toggleClearBtn('nid-categoria')" onfocus="showCategoriaSuggestions('nid-categoria');toggleClearBtn('nid-categoria')" onblur="hideCategoriaSuggestions(event)" onkeydown="handleDropdownKey(event,'nid-categoria')" style="padding-right:32px">
+        <input class="form-input" id="nid-categoria" required placeholder="E.g: Short / Instagram Reel" autocomplete="off" oninput="showCategoriaSuggestions('nid-categoria');toggleClearBtn('nid-categoria')" onfocus="showCategoriaSuggestions('nid-categoria');toggleClearBtn('nid-categoria')" onkeydown="handleDropdownKey(event,'nid-categoria')" style="padding-right:32px">
         <button type="button" id="nid-categoria-clear" onclick="clearCategoria('nid-categoria')" style="display:none;position:absolute;right:28px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;color:var(--slate);font-size:1rem;line-height:1;padding:2px 4px">&times;</button>
         <div class="categoria-dropdown" id="nid-categoria-dropdown" style="display:none"></div>
       </div>
@@ -2602,7 +2602,6 @@ it).
         <input class="form-input" id="nid-estado" value="Idea" autocomplete="off"
           onclick="showEstadoSuggestions('nid-estado')"
           onfocus="showEstadoSuggestions('nid-estado')"
-          onblur="hideCategoriaSuggestions(event)"
           onkeydown="handleDropdownKey(event,'nid-estado')"
           onkeypress="return false"
           style="cursor:pointer;caret-color:transparent">
@@ -3352,7 +3351,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-08 22:56 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-09 00:28 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -5241,6 +5240,13 @@ if (getSavedToken()) {
 
 maybeShowInstallBanner();
 maybeShowHowto();
+
+// Close categoria/estado dropdowns when clicking outside them
+document.addEventListener("click", (e) => {
+  if (!e.target.closest(".categoria-wrap")) {
+    document.querySelectorAll(".categoria-dropdown").forEach(d => d.style.display = "none");
+  }
+});
 
 // Close any modal when clicking the overlay backdrop (outside the modal-box)
 document.querySelectorAll(".modal-overlay").forEach(overlay => {
