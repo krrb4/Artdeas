@@ -2041,6 +2041,21 @@ it).
     outline: none;
   }
 
+  /* Native select styled to match the rest of the form */
+  select.form-input {
+    appearance: none;
+    -webkit-appearance: none;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' viewBox='0 0 12 8'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23888' stroke-width='1.5' fill='none' stroke-linecap='round'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-position: right 12px center;
+    padding-right: 32px;
+    cursor: pointer;
+  }
+
+  select.form-input:focus {
+    border-color: var(--accent);
+  }
+
   /* iOS zooms in on focus when font-size < 16px — prevent that */
   @media (max-width: 600px) {
     .form-input, .form-textarea, select.form-input {
@@ -2598,16 +2613,13 @@ it).
       </div>
 
       <label class="form-label">Initial status</label>
-      <div class="categoria-wrap" style="position:relative">
-        <input class="form-input" id="nid-estado" value="Idea" autocomplete="off"
-          onclick="showEstadoSuggestions('nid-estado')"
-          onfocus="showEstadoSuggestions('nid-estado')"
-          onkeydown="handleDropdownKey(event,'nid-estado')"
-          onkeypress="return false"
-          style="cursor:pointer;caret-color:transparent">
-        <input type="hidden" id="nid-estado-value" value="idea">
-        <div class="categoria-dropdown" id="nid-estado-dropdown" style="display:none"></div>
-      </div>
+      <select class="form-input" id="nid-estado">
+        <option value="idea">Idea</option>
+        <option value="en-curso">In progress</option>
+        <option value="pausada">Paused</option>
+        <option value="descartada">Discarded</option>
+        <option value="completada">Completed</option>
+      </select>
 
       <label class="form-label">Description</label>
       <textarea class="form-input form-textarea" id="nid-descripcion" placeholder="What the idea is about..."></textarea>
@@ -3351,7 +3363,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-09 21:34 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-09 21:42 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3872,7 +3884,7 @@ function submitNewIdea(e) {
   const titulo = document.getElementById("nid-titulo").value.trim();
   const categoria = document.getElementById("nid-categoria").value.trim();
   const descripcion = document.getElementById("nid-descripcion").value.trim();
-  const estado = document.getElementById("nid-estado-value")?.value || "idea";
+  const estado = document.getElementById("nid-estado").value;
   if (!titulo || !categoria) return;
 
   let id = slugify(titulo);
