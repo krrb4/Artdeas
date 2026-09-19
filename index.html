@@ -2571,11 +2571,7 @@ it).
       <div id="nav-categorias"></div>
     </div>
 
-    <div style="display:flex;gap:12px;align-items:center;justify-content:center">
-      <div class="version-link" onclick="openChangelog()">v0.6.0 · What's new</div>
-      <span style="color:var(--line-strong)">·</span>
-      <div class="version-link" id="trash-link" onclick="goTrash()" style="display:none">🗑 Trash</div>
-    </div>
+    <div class="version-link" onclick="openChangelog()">v0.6.0 · What's new</div>
   </aside>
 
   <main class="main" id="main"></main>
@@ -3370,7 +3366,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-19 20:02 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-19 20:06 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -4772,12 +4768,15 @@ function highlight(text, q) {
    RENDER: SIDEBAR
 ================================================================== */
 function renderSidebar() {
-  document.getElementById("count-todas").textContent = IDEAS.length;
+  document.getElementById("count-todas").textContent = IDEAS.filter(i => i.estado !== "eliminada").length;
   document.getElementById("nav-todas").classList.toggle("active", view === "home");
 
   const catWrap = document.getElementById("nav-categorias");
+  const trashCount = IDEAS.filter(i => i.estado === "eliminada").length;
+  const trashActive = view === "trash";
+
   catWrap.innerHTML = getCategorias().map(cat => {
-    const ideas = IDEAS.filter(i => i.categoria === cat);
+    const ideas = IDEAS.filter(i => i.categoria === cat && i.estado !== "eliminada");
     const active = view === "categoria" && viewParam === cat;
     const ideasHtml = ideas.map(idea => {
       const isActive = view === "detalle" && viewParam === idea.id;
@@ -4793,16 +4792,21 @@ function renderSidebar() {
         </div>
         ${ideasHtml}
       </div>`;
-  }).join("");
+  }).join("") + `
+    <div style="border-top:1px solid var(--line);margin:8px 0 4px"></div>
+    <div class="nav-item-cat ${trashActive ? 'active' : ''}" onclick="goTrash()" style="${trashActive ? '' : 'color:#a13f2e'}">
+      <span>🗑 Trash</span>
+      ${trashCount > 0 ? `<span class="count" style="background:#f4e2dd;color:#a13f2e">${trashCount}</span>` : ''}
+    </div>`;
 }
 
 /* ==================================================================
    RENDER: HOME — solo status cards + buscador global
 ================================================================== */
 function renderStatusCardsOnly() {
-  const statusCards = Object.keys(ESTADOS).map(key => {
+  const statusCards = Object.keys(ESTADOS).filter(k => k !== "eliminada").map(key => {
     const cfg = ESTADOS[key];
-    const items = IDEAS.filter(i => i.estado === key);
+    const items = IDEAS.filter(i => i.estado === key && i.estado !== "eliminada");
     const preview = items.slice(0, 5);
     return `
       <div class="status-card" style="border-top:3px solid ${cfg.color}" onclick="goStatus('${key}')">
@@ -5210,7 +5214,7 @@ function renderDetailEditMode(idea) {
       <input class="form-input" id="ie-titulo" value="${escapeAttr(idea.titulo)}" style="font-family:var(--serif);font-size:1.55rem;font-weight:600;letter-spacing:-0.015em;padding:6px 10px">
       <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
         <select class="form-input" id="ie-estado" style="width:auto;font-size:0.82rem">
-          ${Object.keys(ESTADOS).map(k => `<option value="${k}" ${idea.estado === k ? 'selected' : ''}>${ESTADOS[k].label}</option>`).join("")}
+          ${Object.keys(ESTADOS).filter(k => k !== "eliminada").map(k => `<option value="${k}" ${idea.estado === k ? 'selected' : ''}>${ESTADOS[k].label}</option>`).join("")}
         </select>
         <div class="categoria-wrap" style="position:relative;width:auto">
           <input class="form-input" id="ie-categoria" value="${escapeAttr(idea.categoria)}" style="width:auto;font-size:0.82rem" placeholder="Category" autocomplete="off" oninput="showCategoriaSuggestions('ie-categoria')" onfocus="showCategoriaSuggestions('ie-categoria')" onblur="hideCategoriaSuggestions(event)">
@@ -5350,13 +5354,6 @@ function render() {
     main.innerHTML = renderTrashView();
   } else {
     main.innerHTML = renderHomeView();
-  }
-  // Show Trash link in sidebar only when there are trashed ideas
-  const trashLink = document.getElementById("trash-link");
-  if (trashLink) {
-    const trashCount = IDEAS.filter(i => i.estado === "eliminada").length;
-    trashLink.style.display = trashCount > 0 ? "block" : "none";
-    if (trashCount > 0) trashLink.textContent = `🗑 Trash (${trashCount})`;
   }
   syncSearchInputs();
   updateMobileHeaderBrand();
