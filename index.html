@@ -3365,7 +3365,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-19 19:41 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-19 19:55 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3862,10 +3862,15 @@ function handleDropdownKey(event, inputId) {
 
 function updateCategoriaSuggestions() {} // kept for compatibility, no longer needed
 
-function openNewIdeaForm() {
+function openNewIdeaForm(presetCategoria) {
   updateCategoriaSuggestions();
   switchNewIdeaMode("manual");
   document.getElementById("new-idea-overlay").classList.add("open");
+  if (presetCategoria) {
+    const input = document.getElementById("nid-categoria");
+    input.value = presetCategoria;
+    toggleClearBtn("nid-categoria");
+  }
   document.getElementById("nid-titulo").focus();
 }
 
@@ -4862,8 +4867,13 @@ function renderListPageView() {
     <button class="back-btn" onclick="goHome()">&larr; Back to Home</button>
 
     <div class="page-header">
-      <div class="page-title" style="color:${color}">${escapeHtml(label)}</div>
-      <div class="page-desc">${list.length} idea${list.length === 1 ? '' : 's'}</div>
+      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+        <div>
+          <div class="page-title" style="color:${color}">${escapeHtml(label)}</div>
+          <div class="page-desc">${list.length} idea${list.length === 1 ? '' : 's'}</div>
+        </div>
+        ${view === "categoria" ? `<button class="complete-info-btn" style="margin-left:auto" onclick="openNewIdeaForm('${escapeAttr(viewParam)}')">+ New idea in this category</button>` : ""}
+      </div>
     </div>
 
     <div class="search-wrap">
