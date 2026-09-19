@@ -3365,7 +3365,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-09 21:50 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-19 19:41 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3968,19 +3968,43 @@ async function saveInlineEdit() {
   let updated;
 
   if (activeJson) {
-    // Save from JSON tab
+    // Save from JSON tab — accepts both:
+    // 1. Full idea JSON (has "titulo") → replaces the idea entirely
+    // 2. Partial AI JSON (no "titulo", just fields like fases/notas) → merges like Develop idea
     const raw = stripJsonFences(document.getElementById("ie-json")?.value || "");
+    let parsed;
     try {
-      updated = JSON.parse(raw);
+      parsed = JSON.parse(raw);
     } catch (e) {
       await showAlert("The JSON is not valid. Fix any syntax errors before saving.", { title: "Invalid JSON" });
       return;
     }
+
+    if (parsed.titulo) {
+      // Full replacement
+      updated = parsed;
+      updated.id = editingIdeaId;
+    } else {
+      // Partial merge — same logic as submitEvolve
+      updated = { ...idea };
+      const simpleFields = ["titulo", "categoria", "estado", "dificultad", "tiempo", "descripcion"];
+      simpleFields.forEach(f => { if (parsed[f] !== undefined && parsed[f] !== null) updated[f] = parsed[f]; });
+      if (parsed.notas !== undefined) updated.notas = parsed.notas;
+      if (Array.isArray(parsed.fases)) {
+        updated.fases = parsed.fases;
+      } else if (parsed.fases && typeof parsed.fases === "object") {
+        migrateFasesIfNeeded(parsed);
+        if (parsed.fases.length) updated.fases = parsed.fases;
+      }
+      if (Array.isArray(parsed.cosasAResolver) && parsed.cosasAResolver.length) {
+        updated.cosasAResolver = [...(updated.cosasAResolver || []), ...parsed.cosasAResolver];
+      }
+    }
+
     if (!updated.titulo) {
       await showAlert("The JSON must have at least a \"titulo\" field.", { title: "Missing required field" });
       return;
     }
-    updated.id = editingIdeaId; // never change the id
   } else {
     // Save from Fields tab
     updated = ieCollectFields();
