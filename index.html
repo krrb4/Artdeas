@@ -3366,7 +3366,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-19 20:06 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-19 20:09 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -4218,10 +4218,16 @@ function ieDeleteTask(idx) {
 let editingIdeaId = null; // id of the idea currently being edited (null = view mode)
 
 function openEditIdeaModal(ideaId) {
-  // "Edit" button on the detail page — switches to inline edit mode
   updateCategoriaSuggestions();
+  // Navigate to detail view first (this resets editingIdeaId to null),
+  // then set edit mode so the render shows the edit UI.
+  view = "detalle";
+  viewParam = ideaId;
   editingIdeaId = ideaId;
-  openDetail(ideaId); // re-render in edit mode
+  saveViewState();
+  render();
+  window.scrollTo(0, 0);
+  closeMobileMenu();
 }
 
 function closeEditIdeaModal() {
