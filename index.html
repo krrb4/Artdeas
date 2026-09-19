@@ -2571,7 +2571,11 @@ it).
       <div id="nav-categorias"></div>
     </div>
 
-    <div class="version-link" onclick="openChangelog()">v0.6.0 · What's new</div>
+    <div style="display:flex;gap:12px;align-items:center;justify-content:center">
+      <div class="version-link" onclick="openChangelog()">v0.6.0 · What's new</div>
+      <span style="color:var(--line-strong)">·</span>
+      <div class="version-link" id="trash-link" onclick="goTrash()" style="display:none">🗑 Trash</div>
+    </div>
   </aside>
 
   <main class="main" id="main"></main>
@@ -3320,7 +3324,8 @@ const ESTADOS = {
   "en-curso":    { label: "In progress",    color: "#8b7bd8", soft: "#ebe7fa" },
   "pausada":     { label: "Paused",     color: "#a6702c", soft: "#f3e7d3" },
   "descartada":  { label: "Discarded",  color: "#a13f2e", soft: "#f4e2dd" },
-  "completada":  { label: "Completed",  color: "#8b7bd8", soft: "#ebe7fa" }
+  "completada":  { label: "Completed",  color: "#8b7bd8", soft: "#ebe7fa" },
+  "eliminada":   { label: "Trash",      color: "#888",    soft: "#eee" }
 };
 
 // Migration helper: convert old fixed-key fases object to new array format.
@@ -3365,7 +3370,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-19 19:55 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-19 20:02 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3582,13 +3587,14 @@ let viewParam = null; // status key, category name, or idea id depending on the 
 let currentSearch = "";
 
 function getCategorias() {
-  return [...new Set(IDEAS.map(i => i.categoria))].sort();
+  return [...new Set(IDEAS.filter(i => i.estado !== "eliminada").map(i => i.categoria))].sort();
 }
 
 function scopedIdeas() {
-  if (view === "status") return IDEAS.filter(i => i.estado === viewParam);
-  if (view === "categoria") return IDEAS.filter(i => i.categoria === viewParam);
-  return IDEAS;
+  if (view === "trash") return IDEAS.filter(i => i.estado === "eliminada");
+  if (view === "status") return IDEAS.filter(i => i.estado === viewParam && i.estado !== "eliminada");
+  if (view === "categoria") return IDEAS.filter(i => i.categoria === viewParam && i.estado !== "eliminada");
+  return IDEAS.filter(i => i.estado !== "eliminada");
 }
 
 function filteredIdeas() {
@@ -3692,13 +3698,51 @@ function deleteResolverItem(ideaId, idx) {
 }
 
 async function deleteIdea(ideaId) {
+  // Move to trash instead of deleting permanently
   const idea = IDEAS.find(i => i.id === ideaId);
   if (!idea) return;
-  const confirmado = await showConfirm(`This action cannot be undone.`, { title: `Delete "${idea.titulo}"?`, confirmLabel: "Delete", danger: true });
+  const confirmado = await showConfirm(`"${idea.titulo}" will be moved to Trash. You can restore it within 30 days.`, { title: "Move to Trash?", confirmLabel: "Move to Trash", danger: false });
+  if (!confirmado) return;
+  idea.estado = "eliminada";
+  idea._deletedAt = Date.now();
+  saveIdeas();
+  goHome();
+}
+
+async function deleteForever(ideaId) {
+  const idea = IDEAS.find(i => i.id === ideaId);
+  if (!idea) return;
+  const confirmado = await showConfirm(`This cannot be undone.`, { title: `Delete "${idea.titulo}" forever?`, confirmLabel: "Delete forever", danger: true });
   if (!confirmado) return;
   IDEAS = IDEAS.filter(i => i.id !== ideaId);
   saveIdeas();
-  goHome();
+  goTrash();
+}
+
+async function restoreIdea(ideaId) {
+  const idea = IDEAS.find(i => i.id === ideaId);
+  if (!idea) return;
+  idea.estado = "idea";
+  delete idea._deletedAt;
+  saveIdeas();
+  goTrash();
+}
+
+function goTrash() {
+  view = "trash";
+  viewParam = null;
+  currentSearch = "";
+  render();
+  window.scrollTo(0, 0);
+  closeMobileMenu();
+  saveViewState();
+}
+
+function purgeOldTrash() {
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+  const before = IDEAS.length;
+  IDEAS = IDEAS.filter(i => !(i.estado === "eliminada" && i._deletedAt && Date.now() - i._deletedAt > THIRTY_DAYS));
+  if (IDEAS.length < before) saveIdeas();
 }
 
 /* ==================================================================
@@ -4637,7 +4681,7 @@ function onSearchInput(e) {
     const area = document.getElementById("list-page-results-area");
     if (area) {
       const list = filteredIdeas();
-      area.innerHTML = `<div class="idea-list">${renderIdeaCards(list)}</div>`;
+      area.innerHTML = `<div class="idea-list">${renderIdeaCards(list, view === "categoria")}</div>`;
     }
   }
 
@@ -4883,14 +4927,49 @@ function renderListPageView() {
       <input class="search-input" placeholder="Search within this view..." value="${escapeAttr(currentSearch)}" oninput="onSearchInput(event)">
     </div>
 
-    <div id="list-page-results-area"><div class="idea-list">${renderIdeaCards(list)}</div></div>
+    <div id="list-page-results-area"><div class="idea-list">${renderIdeaCards(list, view === "categoria")}</div></div>
   `;
 }
 
-function renderIdeaCards(list) {
+function renderTrashView() {
+  const list = IDEAS.filter(i => i.estado === "eliminada");
+  const THIRTY_DAYS = 30 * 24 * 60 * 60 * 1000;
+  const items = list.length ? list.map(idea => {
+    const daysLeft = Math.ceil((THIRTY_DAYS - (Date.now() - (idea._deletedAt || Date.now()))) / (24*60*60*1000));
+    return `
+      <div class="idea-card" style="border-left:3px solid #888;opacity:0.8">
+        <div class="idea-card-main" style="flex:1">
+          <div class="idea-card-title">${escapeHtml(idea.titulo)}</div>
+          <div class="idea-card-meta">
+            <span class="tag tag-cat">${escapeHtml(idea.categoria)}</span>
+            <span style="font-size:0.72rem;color:var(--slate)">Auto-deletes in ${daysLeft} day${daysLeft === 1 ? '' : 's'}</span>
+          </div>
+        </div>
+        <div style="display:flex;gap:8px;align-items:center;flex-shrink:0">
+          <button class="complete-info-btn" onclick="restoreIdea('${escapeAttr(idea.id)}')">Restore</button>
+          <button class="idea-delete-btn" onclick="deleteForever('${escapeAttr(idea.id)}')">Delete forever</button>
+        </div>
+      </div>`;
+  }).join("") : `<div class="empty-state"><div class="big">Trash is empty</div></div>`;
+
+  return `
+    <button class="back-btn" onclick="goHome()">&larr; Back to Home</button>
+    <div class="page-header">
+      <div class="page-title" style="color:var(--slate)">🗑 Trash</div>
+      <div class="page-desc">Ideas here are deleted permanently after 30 days</div>
+    </div>
+    <div class="idea-list">${items}</div>`;
+}
+
+function renderIdeaCards(list, showActions) {
   if (!list.length) return `<div class="empty-state"><div class="big">No ideas here</div>Try another filter or search for something else.</div>`;
   return list.map(idea => {
-    const cfg = ESTADOS[idea.estado];
+    const cfg = ESTADOS[idea.estado] || ESTADOS["idea"];
+    const actions = showActions ? `
+      <div class="idea-card-actions" onclick="event.stopPropagation()">
+        <button class="complete-info-btn" onclick="openEditIdeaModal('${escapeAttr(idea.id)}')">Edit</button>
+        <button class="idea-delete-btn" onclick="deleteIdea('${escapeAttr(idea.id)}')">Delete</button>
+      </div>` : "";
     return `
     <div class="idea-card" style="border-left:3px solid ${cfg.color}" onclick="openDetail('${idea.id}')">
       <div class="idea-card-main">
@@ -4900,15 +4979,18 @@ function renderIdeaCards(list) {
           <span class="tag tag-cat">${escapeHtml(idea.categoria)}</span>
         </div>
       </div>
-      <div class="idea-card-stats">
-        <div class="stat-block">
-          <div class="stat-num">${idea.dificultad ?? '—'}</div>
-          <div class="stat-lbl">Dificult.</div>
+      <div style="display:flex;align-items:center;gap:12px">
+        <div class="idea-card-stats">
+          <div class="stat-block">
+            <div class="stat-num">${idea.dificultad ?? '—'}</div>
+            <div class="stat-lbl">Dificult.</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-num">${idea.tiempo ?? '—'}</div>
+            <div class="stat-lbl">Time</div>
+          </div>
         </div>
-        <div class="stat-block">
-          <div class="stat-num">${idea.tiempo ?? '—'}</div>
-          <div class="stat-lbl">Time</div>
-        </div>
+        ${actions}
       </div>
     </div>`;
   }).join("");
@@ -5264,8 +5346,17 @@ function render() {
     main.innerHTML = idea ? renderDetailView(idea) : renderHomeView();
   } else if (view === "status" || view === "categoria") {
     main.innerHTML = renderListPageView();
+  } else if (view === "trash") {
+    main.innerHTML = renderTrashView();
   } else {
     main.innerHTML = renderHomeView();
+  }
+  // Show Trash link in sidebar only when there are trashed ideas
+  const trashLink = document.getElementById("trash-link");
+  if (trashLink) {
+    const trashCount = IDEAS.filter(i => i.estado === "eliminada").length;
+    trashLink.style.display = trashCount > 0 ? "block" : "none";
+    if (trashCount > 0) trashLink.textContent = `🗑 Trash (${trashCount})`;
   }
   syncSearchInputs();
   updateMobileHeaderBrand();
@@ -5341,6 +5432,9 @@ document.querySelectorAll(".modal-overlay").forEach(overlay => {
     }
   });
 });
+
+// Auto-purge ideas that have been in trash for 30+ days
+purgeOldTrash();
 </script>
 </body>
 </html>
