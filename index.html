@@ -736,6 +736,12 @@ it).
   .nav-item-cat.active {
     color: var(--accent);
     font-weight: 700;
+    text-decoration: underline;
+  }
+
+  .nav-item-cat.parent-active {
+    color: var(--accent);
+    text-decoration: underline;
   }
 
   .nav-cat-group {
@@ -3386,7 +3392,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-19 20:20 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-19 20:24 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -4803,7 +4809,9 @@ function renderSidebar() {
 
   catWrap.innerHTML = getCategorias().map(cat => {
     const ideas = IDEAS.filter(i => i.categoria === cat && i.estado !== "eliminada");
-    const active = view === "categoria" && viewParam === cat;
+    const catActive = view === "categoria" && viewParam === cat;
+    const ideaActive = view === "detalle" && ideas.some(i => i.id === viewParam);
+    const catClass = catActive ? "active" : ideaActive ? "parent-active" : "";
     const ideasHtml = ideas.map(idea => {
       const isActive = view === "detalle" && viewParam === idea.id;
       return `<div class="nav-idea-item ${isActive ? 'active' : ''}" onclick="openDetail('${escapeAttr(idea.id)}')">
@@ -4812,7 +4820,7 @@ function renderSidebar() {
     }).join("");
     return `
       <div class="nav-cat-group">
-        <div class="nav-item-cat ${active ? 'active' : ''}" onclick="goCategoria('${escapeAttr(cat)}')">
+        <div class="nav-item-cat ${catClass}" onclick="goCategoria('${escapeAttr(cat)}')">
           <span>${escapeHtml(cat)}</span>
           <span class="count">${ideas.length}</span>
         </div>
