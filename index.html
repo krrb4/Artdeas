@@ -734,12 +734,31 @@ it).
   }
 
   .nav-item-cat.active {
-    background: var(--ink);
-    color: var(--paper);
+    color: var(--accent);
+    font-weight: 700;
   }
 
   .nav-cat-group {
     margin-bottom: 4px;
+  }
+
+  /* Trash item in sidebar */
+  .nav-trash-btn {
+    color: var(--rust, #a13f2e);
+  }
+  .nav-trash-btn:hover {
+    background: var(--accent-soft);
+    color: var(--rust, #a13f2e);
+  }
+  .nav-trash-btn.active {
+    color: var(--rust, #a13f2e);
+    font-weight: 700;
+    background: none;
+  }
+
+  .trash-count {
+    background: color-mix(in srgb, #a13f2e 15%, var(--paper));
+    color: #a13f2e !important;
   }
 
   .nav-idea-item {
@@ -3366,7 +3385,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-19 20:09 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-19 20:13 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -4800,9 +4819,9 @@ function renderSidebar() {
       </div>`;
   }).join("") + `
     <div style="border-top:1px solid var(--line);margin:8px 0 4px"></div>
-    <div class="nav-item-cat ${trashActive ? 'active' : ''}" onclick="goTrash()" style="${trashActive ? '' : 'color:#a13f2e'}">
+    <div class="nav-item-cat nav-trash-btn ${trashActive ? 'active' : ''}" onclick="goTrash()">
       <span>🗑 Trash</span>
-      ${trashCount > 0 ? `<span class="count" style="background:#f4e2dd;color:#a13f2e">${trashCount}</span>` : ''}
+    ${trashCount > 0 ? `<span class="count trash-count">${trashCount}</span>` : ''}
     </div>`;
 }
 
@@ -4965,7 +4984,7 @@ function renderTrashView() {
   return `
     <button class="back-btn" onclick="goHome()">&larr; Back to Home</button>
     <div class="page-header">
-      <div class="page-title" style="color:var(--slate)">🗑 Trash</div>
+      <div class="page-title" style="color:#a13f2e">🗑 Trash</div>
       <div class="page-desc">Ideas here are deleted permanently after 30 days</div>
     </div>
     <div class="idea-list">${items}</div>`;
