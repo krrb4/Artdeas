@@ -810,6 +810,19 @@ it).
     margin-bottom: 28px;
   }
 
+  .page-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+  }
+
+  .page-header-btn {
+    flex-shrink: 0;
+    white-space: nowrap;
+  }
+
   .page-title {
     font-family: var(--serif);
     font-size: 2rem;
@@ -821,6 +834,21 @@ it).
   .page-desc {
     color: var(--slate);
     font-size: 0.92rem;
+  }
+
+  @media (max-width: 600px) {
+    .page-header-row {
+      flex-direction: column;
+      align-items: stretch;
+    }
+    .page-header-btn {
+      white-space: normal;
+      width: 100%;
+      text-align: center;
+    }
+    .page-title {
+      font-size: 1.5rem;
+    }
   }
 
   /* ============ HOME HERO ============ */
@@ -3396,7 +3424,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-19 20:28 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-22 20:54 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -4953,12 +4981,12 @@ function renderListPageView() {
     <button class="back-btn" onclick="goHome()">&larr; Back to Home</button>
 
     <div class="page-header">
-      <div style="display:flex;align-items:center;gap:12px;flex-wrap:wrap">
+      <div class="page-header-row">
         <div>
           <div class="page-title" style="color:${color}">${escapeHtml(label)}</div>
           <div class="page-desc">${list.length} idea${list.length === 1 ? '' : 's'}</div>
         </div>
-        ${view === "categoria" ? `<button class="complete-info-btn" style="margin-left:auto" onclick="openNewIdeaForm('${escapeAttr(viewParam)}')">+ New idea in this category</button>` : ""}
+        ${view === "categoria" ? `<button class="complete-info-btn page-header-btn" onclick="openNewIdeaForm('${escapeAttr(viewParam)}')">+ New idea in this category</button>` : ""}
       </div>
     </div>
 
