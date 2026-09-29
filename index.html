@@ -1295,7 +1295,6 @@ it).
     .detail-view-grid {
       display: grid;
       grid-template-columns: 3fr 2fr;
-      column-gap: 28px;
       align-items: start;
     }
 
@@ -1317,6 +1316,14 @@ it).
       max-height: calc(100vh - var(--sticky-header-h, 140px));
       overflow-y: auto;
       padding-right: 4px;
+      /* Subtle separator line between the two columns, centered in
+         the grid gap */
+      border-left: 1px solid var(--line);
+      padding-left: 14px;
+    }
+
+    .detail-dashboard-scrollcol {
+      padding-right: 14px;
     }
 
     .detail-dashboard-sidecol .detail-block {
@@ -1330,16 +1337,28 @@ it).
   /* Below 1000px: no sticky, no grid — everything stacks in the
      natural HTML order (title, description, notes, then plan). */
   @media (max-width: 999px) {
-    .detail-view-grid {
-      display: block;
-    }
-    .detail-dashboard-sidecol {
-      margin-top: 20px;
-      position: static;
-    }
     .detail-sticky-top {
       position: static;
     }
+
+    /* Mobile order: Description, Progress, Production plan, Notes,
+       Things to figure out. The grid becomes one flex column, and the
+       scrollcol/sidecol wrappers turn transparent (display:contents)
+       so their individual blocks can be reordered directly. */
+    .detail-view-grid {
+      display: flex;
+      flex-direction: column;
+    }
+    .detail-dashboard-scrollcol,
+    .detail-dashboard-sidecol {
+      display: contents;
+    }
+
+    .detail-order-desc    { order: 1; }
+    .detail-order-progress{ order: 2; }
+    .detail-order-plan    { order: 3; }
+    .detail-order-notes   { order: 4; }
+    .detail-order-resolve { order: 5; }
   }
 
   .complete-info-btn {
@@ -3535,7 +3554,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-29 00:39 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-29 00:46 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -5404,14 +5423,14 @@ function renderDetailReadMode(idea) {
 
     <div class="detail-view-grid">
       <div class="detail-dashboard-scrollcol">
-        ${idea.fases && idea.fases.length > 0 ? renderPhaseTimeline(idea) : ""}
-        ${fasesHtml}
-        ${resolverHtml}
+        <div class="detail-order-progress">${idea.fases && idea.fases.length > 0 ? renderPhaseTimeline(idea) : ""}</div>
+        <div class="detail-order-plan">${fasesHtml}</div>
+        <div class="detail-order-resolve">${resolverHtml}</div>
       </div>
 
       <div class="detail-dashboard-sidecol" id="detail-sticky-sidecol">
-        ${descBlockHtml}
-        ${notasStickyHtml}
+        <div class="detail-order-desc">${descBlockHtml}</div>
+        <div class="detail-order-notes">${notasStickyHtml}</div>
       </div>
     </div>
   `;
