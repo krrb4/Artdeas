@@ -1279,8 +1279,9 @@ it).
      plan and things to figure out. Only active above 1000px — on
      smaller screens everything just stacks normally (see below). */
   @media (min-width: 1000px) {
-    /* Header (back/edit/delete row + title/badges row) spans full width
-       and is sticky at the very top — it sits OUTSIDE the 2-column grid. */
+    /* Header (back/edit/delete row + full-width title/badges row) is
+       sticky at the very top and spans the FULL width — it lives
+       OUTSIDE the 2-column grid below. */
     .detail-sticky-top {
       position: sticky;
       top: 0;
@@ -1289,8 +1290,8 @@ it).
       z-index: 2;
     }
 
-    /* Below the header: a 2-column grid. Left = scrollable plan content
-       (NOT sticky, scrolls normally). Right = description+notes, sticky. */
+    /* 2-column grid below the header: left = plan content (scrolls
+       normally, NOT sticky), right = description+notes (sticky). */
     .detail-view-grid {
       display: grid;
       grid-template-columns: 3fr 2fr;
@@ -1305,7 +1306,11 @@ it).
     .detail-dashboard-sidecol {
       grid-column: 2;
       position: sticky;
-      top: 100px; /* sits just below the sticky header */
+      /* top is set dynamically via JS to match the real header height
+         (--sticky-header-h custom property) — a fixed px value here
+         would drift out of sync whenever the header's content wraps
+         to a different height (long titles, many badges, etc). */
+      top: calc(var(--sticky-header-h, 140px) + 12px);
     }
 
     .detail-dashboard-sidecol .detail-block {
@@ -1329,6 +1334,10 @@ it).
     }
     .detail-dashboard-sidecol {
       margin-top: 20px;
+      position: static;
+    }
+    .detail-sticky-top {
+      position: static;
     }
   }
 
@@ -3483,7 +3492,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-29 00:06 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-29 00:11 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -5307,7 +5316,7 @@ function renderDetailReadMode(idea) {
     </div>` : "";
 
   return `
-    <div class="detail-sticky-top">
+    <div class="detail-sticky-top" id="detail-sticky-header">
       <div class="detail-top-row" style="margin-top:24px">
         <button class="back-btn" onclick="goHome()">&larr; Back to Home</button>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
@@ -5339,7 +5348,7 @@ function renderDetailReadMode(idea) {
         ${resolverHtml}
       </div>
 
-      <div class="detail-dashboard-sidecol">
+      <div class="detail-dashboard-sidecol" id="detail-sticky-sidecol">
         ${descBlockHtml}
         ${notasStickyHtml}
       </div>
@@ -5490,6 +5499,7 @@ function render() {
   if (view === "detalle") {
     const idea = IDEAS.find(i => i.id === viewParam);
     main.innerHTML = idea ? renderDetailView(idea) : renderHomeView();
+    if (idea) updateStickyHeaderHeight();
   } else if (view === "status" || view === "categoria") {
     main.innerHTML = renderListPageView();
   } else if (view === "trash") {
@@ -5500,6 +5510,24 @@ function render() {
   syncSearchInputs();
   updateMobileHeaderBrand();
 }
+
+// The detail view's sidecol (description+notes) needs to stick right
+// below the full-width header — but the header's real height varies
+// (long titles wrap, badges wrap on narrower screens, etc). Instead of
+// guessing a fixed px value, measure it after each render and expose
+// it as a CSS custom property the sidecol's "top" reads from.
+function updateStickyHeaderHeight() {
+  requestAnimationFrame(() => {
+    const header = document.getElementById("detail-sticky-header");
+    if (!header) return;
+    const h = header.getBoundingClientRect().height;
+    document.documentElement.style.setProperty("--sticky-header-h", h + "px");
+  });
+}
+
+window.addEventListener("resize", () => {
+  if (view === "detalle") updateStickyHeaderHeight();
+});
 
 // On Home, the hero already shows a big logo further down, so the
 // header logo up top (mobile) is hidden there to avoid duplicating
