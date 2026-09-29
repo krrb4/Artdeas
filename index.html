@@ -1306,21 +1306,19 @@ it).
     .detail-dashboard-sidecol {
       grid-column: 2;
       position: sticky;
-      /* top matches the real header height exactly (measured via JS
-         into --sticky-header-h) so Description lines up with Progress,
-         which starts right at the same y as the header's bottom edge. */
-      top: var(--sticky-header-h, 140px);
-      /* The whole sidecol (description + notes) gets its OWN scrollbar,
-         capped to whatever viewport space remains below the header —
-         it must not rely on the page's scroll. */
-      max-height: calc(100vh - var(--sticky-header-h, 140px));
-      overflow-y: auto;
-      padding-right: 4px;
+      /* top is set dynamically via JS to match the real header height
+         (--sticky-header-h custom property) — a fixed px value here
+         would drift out of sync whenever the header's content wraps
+         to a different height (long titles, many badges, etc). */
+      top: calc(var(--sticky-header-h, 140px) + 12px);
     }
 
     .detail-dashboard-sidecol .detail-block {
       margin-bottom: 14px;
     }
+
+    /* Notes no longer scroll on their own — the whole sidecol
+       (description + notes) has one shared scrollbar instead. */
   }
 
   /* Below 1000px: no sticky, no grid — everything stacks in the
@@ -1512,6 +1510,20 @@ it).
     position: relative;
     -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
     mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
+  }
+
+  /* When collapsed, the Description card matches the Progress card's
+     height (~211px) so the two columns end at the same line instead
+     of Description looking short and leaving a visual gap. */
+  @media (min-width: 1000px) {
+    .detail-block-desc-collapsed {
+      min-height: 211px;
+      display: flex;
+      flex-direction: column;
+    }
+    .detail-block-desc-collapsed .desc-text-collapsed {
+      flex: 1;
+    }
   }
 
   .desc-text-collapsed.expanded {
@@ -3517,7 +3529,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-29 00:32 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-29 00:36 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3820,9 +3832,13 @@ function closeMobileMenu() {
 function toggleDescExpand() {
   const box = document.getElementById("desc-text-box");
   const btn = document.getElementById("desc-toggle-btn");
+  const block = document.getElementById("desc-block");
   if (!box || !btn) return;
   const expanded = box.classList.toggle("expanded");
   btn.textContent = expanded ? "Show less" : "Show more";
+  // The min-height match with Progress only makes sense while
+  // collapsed — once expanded, let the card grow with its content.
+  if (block) block.classList.toggle("detail-block-desc-collapsed", !expanded);
   // The sidecol's sticky offset / scrollable height may need to
   // re-flow after the description grows or shrinks
   if (view === "detalle") updateStickyHeaderHeight();
@@ -5340,7 +5356,7 @@ function renderDetailReadMode(idea) {
   const DESC_COLLAPSE_LIMIT = 280;
   const descIsLong = idea.descripcion.length > DESC_COLLAPSE_LIMIT;
   const descBlockHtml = `
-    <div class="detail-block">
+    <div class="detail-block ${descIsLong ? 'detail-block-desc-collapsed' : ''}" id="desc-block">
       <div class="block-title c-desc"><span class="dot" style="background:var(--ink)"></span>Description</div>
       <div class="desc-text ${descIsLong ? 'desc-text-collapsed' : ''}" id="desc-text-box">${descParagraphs}</div>
       ${descIsLong ? `<button class="desc-toggle-btn" id="desc-toggle-btn" onclick="toggleDescExpand()">Show more</button>` : ""}
