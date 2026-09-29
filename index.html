@@ -1306,19 +1306,21 @@ it).
     .detail-dashboard-sidecol {
       grid-column: 2;
       position: sticky;
-      /* top is set dynamically via JS to match the real header height
-         (--sticky-header-h custom property) — a fixed px value here
-         would drift out of sync whenever the header's content wraps
-         to a different height (long titles, many badges, etc). */
-      top: calc(var(--sticky-header-h, 140px) + 12px);
+      /* top matches the real header height exactly (measured via JS
+         into --sticky-header-h) so Description lines up with Progress,
+         which starts right at the same y as the header's bottom edge. */
+      top: var(--sticky-header-h, 140px);
+      /* The whole sidecol (description + notes) gets its OWN scrollbar,
+         capped to whatever viewport space remains below the header —
+         it must not rely on the page's scroll. */
+      max-height: calc(100vh - var(--sticky-header-h, 140px));
+      overflow-y: auto;
+      padding-right: 4px;
     }
 
     .detail-dashboard-sidecol .detail-block {
       margin-bottom: 14px;
     }
-
-    /* Notes no longer scroll on their own — the whole sidecol
-       (description + notes) has one shared scrollbar instead. */
   }
 
   /* Below 1000px: no sticky, no grid — everything stacks in the
@@ -3515,7 +3517,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-29 00:28 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-29 00:32 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
