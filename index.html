@@ -1311,14 +1311,22 @@ it).
          would drift out of sync whenever the header's content wraps
          to a different height (long titles, many badges, etc). */
       top: calc(var(--sticky-header-h, 140px) + 12px);
+      /* The whole sidecol (description + notes together) must fit
+         within the remaining viewport height below the sticky header,
+         or a long description pushes Notes' title out of view. Give
+         the whole column its own scroll instead of relying only on
+         Notes' internal one. */
+      max-height: calc(100vh - var(--sticky-header-h, 140px) - 36px);
+      overflow-y: auto;
+      padding-right: 4px;
     }
 
     .detail-dashboard-sidecol .detail-block {
       margin-bottom: 14px;
     }
 
-    /* Notes get their own internal scroll so a long list doesn't
-       push the sidecol taller than the viewport */
+    /* Notes' own internal scroll stays as a secondary safeguard for
+       when it alone is very long even with a short description */
     .notes-list-scrollable {
       max-height: 220px;
       overflow-y: auto;
@@ -3492,7 +3500,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-29 00:11 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-29 00:22 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
