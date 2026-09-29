@@ -1311,27 +1311,14 @@ it).
          would drift out of sync whenever the header's content wraps
          to a different height (long titles, many badges, etc). */
       top: calc(var(--sticky-header-h, 140px) + 12px);
-      /* The whole sidecol (description + notes together) must fit
-         within the remaining viewport height below the sticky header,
-         or a long description pushes Notes' title out of view. Give
-         the whole column its own scroll instead of relying only on
-         Notes' internal one. */
-      max-height: calc(100vh - var(--sticky-header-h, 140px) - 36px);
-      overflow-y: auto;
-      padding-right: 4px;
     }
 
     .detail-dashboard-sidecol .detail-block {
       margin-bottom: 14px;
     }
 
-    /* Notes' own internal scroll stays as a secondary safeguard for
-       when it alone is very long even with a short description */
-    .notes-list-scrollable {
-      max-height: 220px;
-      overflow-y: auto;
-      padding-right: 4px;
-    }
+    /* Notes no longer scroll on their own — the whole sidecol
+       (description + notes) has one shared scrollbar instead. */
   }
 
   /* Below 1000px: no sticky, no grid — everything stacks in the
@@ -1516,6 +1503,34 @@ it).
     color: var(--ink);
   }
   .desc-text p:last-child { margin-bottom: 0; }
+
+  .desc-text-collapsed {
+    max-height: 4.6em; /* roughly 3 lines at this font-size/line-height */
+    overflow: hidden;
+    position: relative;
+    -webkit-mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
+    mask-image: linear-gradient(to bottom, black calc(100% - 24px), transparent 100%);
+  }
+
+  .desc-text-collapsed.expanded {
+    max-height: none;
+    -webkit-mask-image: none;
+    mask-image: none;
+  }
+
+  .desc-toggle-btn {
+    background: none;
+    border: none;
+    color: var(--accent);
+    font-family: var(--sans);
+    font-size: 0.8rem;
+    font-weight: 600;
+    cursor: pointer;
+    padding: 8px 0 0;
+    display: block;
+  }
+
+  .desc-toggle-btn:hover { text-decoration: underline; }
 
   .notes-list {
     list-style: none;
@@ -3500,7 +3515,7 @@ function migrateFasesIfNeeded(idea) {
    public:true items written for a general user, not implementation
    details.
 ================================================================== */
-const DEPLOY_TIMESTAMP = "2026-09-29 00:22 UTC"; // auto-updated on each deploy
+const DEPLOY_TIMESTAMP = "2026-09-29 00:28 UTC"; // auto-updated on each deploy
 
 const CHANGELOG_DATA = [
   {
@@ -3798,6 +3813,17 @@ function toggleMobileMenu() {
 function closeMobileMenu() {
   document.getElementById("sidebar").classList.remove("open");
   document.getElementById("sidebar-overlay").classList.remove("open");
+}
+
+function toggleDescExpand() {
+  const box = document.getElementById("desc-text-box");
+  const btn = document.getElementById("desc-toggle-btn");
+  if (!box || !btn) return;
+  const expanded = box.classList.toggle("expanded");
+  btn.textContent = expanded ? "Show less" : "Show more";
+  // The sidecol's sticky offset / scrollable height may need to
+  // re-flow after the description grows or shrinks
+  if (view === "detalle") updateStickyHeaderHeight();
 }
 
 function toggleResolve(ideaId, idx) {
@@ -5309,10 +5335,13 @@ function renderDetailReadMode(idea) {
       <button class="resolve-add-btn" onclick="addResolverItem('${idea.id}')">+ Add thing to figure out</button>
     </div>`;
 
+  const DESC_COLLAPSE_LIMIT = 280;
+  const descIsLong = idea.descripcion.length > DESC_COLLAPSE_LIMIT;
   const descBlockHtml = `
     <div class="detail-block">
       <div class="block-title c-desc"><span class="dot" style="background:var(--ink)"></span>Description</div>
-      <div class="desc-text">${descParagraphs}</div>
+      <div class="desc-text ${descIsLong ? 'desc-text-collapsed' : ''}" id="desc-text-box">${descParagraphs}</div>
+      ${descIsLong ? `<button class="desc-toggle-btn" id="desc-toggle-btn" onclick="toggleDescExpand()">Show more</button>` : ""}
     </div>`;
 
   // Notes get their own internal scroll on desktop (capped height) so a long
@@ -5320,12 +5349,12 @@ function renderDetailReadMode(idea) {
   const notasStickyHtml = idea.notas.length ? `
     <div class="detail-block">
       <div class="block-title c-notes"><span class="dot" style="background:var(--amber)"></span>Notes</div>
-      <ul class="notes-list notes-list-scrollable">${idea.notas.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul>
+      <ul class="notes-list">${idea.notas.map(n => `<li>${escapeHtml(n)}</li>`).join("")}</ul>
     </div>` : "";
 
   return `
     <div class="detail-sticky-top" id="detail-sticky-header">
-      <div class="detail-top-row" style="margin-top:24px">
+      <div class="detail-top-row" style="margin-top:0;padding-top:24px">
         <button class="back-btn" onclick="goHome()">&larr; Back to Home</button>
         <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
           <button class="complete-info-btn" onclick="startEditIdea('${idea.id}')">
